@@ -1,0 +1,294 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String            @id @default(uuid())
+  name             String
+  email            String            @unique
+  password         String
+  image            String?
+  role             Role?             @default(user)
+  phone            String?           @unique
+  address          String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  reviews          UserReview[]
+  orders           Order[]
+  Blog             Blog[]
+  Booking          Booking[]
+  Notification     Notification[]
+  Cart             Cart? // New relationship: User's Cart
+  Wishlist         Wishlist[] // New relationship: User's Wishlist
+  Payment          Payment[] // New relationship: User's Payments
+  productReviews   ProductReview[]
+  productQuestions ProductQuestion[]
+
+  @@map("user")
+}
+
+model Service {
+  id          String       @id @default(uuid())
+  name        String
+  description String?
+  image       String?
+  UserReview  UserReview[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  Booking     Booking[]
+
+  @@map("service")
+}
+
+model Category {
+  id          String        @id @default(uuid())
+  name        String
+  description String?
+  products    Product[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  SubCategory SubCategory[]
+
+  @@map("category")
+}
+
+model Brand {
+  id          String    @id @default(uuid())
+  name        String
+  description String?
+  products    Product[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("brand")
+}
+
+model SubCategory {
+  id          String    @id @default(uuid())
+  name        String
+  description String?
+  category    Category  @relation(fields: [categoryId], references: [id])
+  categoryId  String
+  products    Product[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("sub_category")
+}
+
+model Product {
+  id            String            @id @default(uuid())
+  name          String
+  description   String?
+  image         String?
+  price         Float
+  brand         Brand?            @relation(fields: [brandId], references: [id])
+  brandId       String?
+  subCategory   SubCategory?      @relation(fields: [subCategoryId], references: [id])
+  subCategoryId String?
+  stock         String?
+  quantity      Int
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  OrderProduct  OrderProduct[]
+  Category      Category?         @relation(fields: [categoryId], references: [id])
+  categoryId    String?
+  cartItems     CartItem[]
+  wishlists     Wishlist[]
+  reviews       ProductReview[]
+  questions     ProductQuestion[]
+
+  @@map("product")
+}
+
+model ProductReview {
+  id        String   @id @default(uuid())
+  rating    Int
+  content   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@map("product_review")
+}
+
+model ProductQuestion {
+  id        String   @id @default(uuid())
+  question  String
+  answer    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@map("product_question")
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  title     String
+  content   String
+  isRead    Boolean  @default(false)
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("notification")
+}
+
+model UserReview {
+  id        String   @id @default(uuid())
+  rating    Int
+  content   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  service   Service  @relation(fields: [serviceId], references: [id])
+  serviceId String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@map("user_review")
+}
+
+model Order {
+  id           String         @id @default(uuid())
+  userId       String
+  totalAmount  Float
+  firstName    String
+  lastName     String
+  status       OrderStatus
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  orderProduct OrderProduct[]
+  address      String
+  city         String
+  postcode     String
+  note         String?
+  phone        String
+  User         User           @relation(fields: [userId], references: [id])
+
+  @@map("order")
+}
+
+model OrderProduct {
+  id        String  @id @default(uuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id])
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int
+
+  @@map("order_product")
+}
+
+model Booking {
+  id        String        @id @default(uuid())
+  serviceId String
+  service   Service       @relation(fields: [serviceId], references: [id])
+  userId    String
+  user      User          @relation(fields: [userId], references: [id])
+  date      DateTime
+  status    BookingStatus
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@map("booking")
+}
+
+model Blog {
+  id         String   @id @default(uuid())
+  title      String
+  content    String
+  image      String?
+  author     User     @relation(fields: [authorId], references: [id])
+  authorId   String
+  authorName String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("blog")
+}
+
+model Cart {
+  id        String     @id @default(uuid())
+  user      User       @relation(fields: [userId], references: [id])
+  userId    String     @unique
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  items     CartItem[] // New relationship: Cart Items
+
+  @@map("cart")
+}
+
+model CartItem {
+  id        String  @id @default(uuid())
+  cart      Cart    @relation(fields: [cartId], references: [id])
+  cartId    String
+  product   Product @relation(fields: [productId], references: [id])
+  productId String
+  quantity  Int
+
+  @@map("cart_item")
+}
+
+model Wishlist {
+  id        String    @id @default(uuid())
+  user      User      @relation(fields: [userId], references: [id])
+  userId    String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  products  Product[]
+
+  @@map("wishlist")
+}
+
+model Payment {
+  id            String        @id @default(uuid())
+  user          User          @relation(fields: [userId], references: [id])
+  userId        String
+  amount        Float
+  paymentStatus PaymentStatus
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@map("payment")
+}
+
+enum PaymentStatus {
+  pending
+  succeeded
+  failed
+  refunded
+}
+
+enum Role {
+  superadmin
+  admin
+  user
+}
+
+enum OrderStatus {
+  pending
+  confirmed
+  shipped
+  delivered
+  canceled
+}
+
+enum BookingStatus {
+  pending
+  confirmed
+  canceled
+  completed
+}
