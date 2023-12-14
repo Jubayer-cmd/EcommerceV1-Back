@@ -1,14 +1,14 @@
-import { Prisma, Product } from "@prisma/client";
-import { IGenericResponse } from "../../../interface/common";
-import { IPaginationOptions } from "../../../interface/pagination";
-import { paginationHelpers } from "../../../utils/paginationHelper";
-import prisma from "../../../utils/prisma";
+import { Prisma, Product, ProductReview } from '@prisma/client';
+import { IGenericResponse } from '../../../interface/common';
+import { IPaginationOptions } from '../../../interface/pagination';
+import { paginationHelpers } from '../../../utils/paginationHelper';
+import prisma from '../../../utils/prisma';
 import {
   IProductFilterRequest,
   productRelationalFields,
   productRelationalFieldsMapper,
   productSearchableFields,
-} from "./product.constants";
+} from './product.constants';
 
 const insertIntoDB = async (data: Product): Promise<Product> => {
   const result = await prisma.product.create({
@@ -19,7 +19,7 @@ const insertIntoDB = async (data: Product): Promise<Product> => {
 
 const getAllProducts = async (
   filters: IProductFilterRequest,
-  options: IPaginationOptions
+  options: IPaginationOptions,
 ): Promise<IGenericResponse<Product[]>> => {
   const { limit, page, skip } = paginationHelpers.calculatePagination(options);
   const { searchTerm, ...filterData } = filters;
@@ -31,7 +31,7 @@ const getAllProducts = async (
       OR: productSearchableFields.map((field) => ({
         [field]: {
           contains: searchTerm,
-          mode: "insensitive",
+          mode: 'insensitive',
         },
       })),
     });
@@ -71,7 +71,7 @@ const getAllProducts = async (
       options.sortBy && options.sortOrder
         ? { [options.sortBy]: options.sortOrder }
         : {
-            createdAt: "desc",
+            createdAt: 'desc',
           },
   });
   const total = await prisma.product.count({
@@ -90,7 +90,7 @@ const getAllProducts = async (
 // get by category
 const getProductsbyCategoryService = async (
   id: string,
-  options: IPaginationOptions
+  options: IPaginationOptions,
 ): Promise<IGenericResponse<Product[]>> => {
   const { limit, page, skip } = paginationHelpers.calculatePagination(options);
   const andConditions = [];
@@ -136,6 +136,10 @@ const getProductById = async (id: string): Promise<Product | null> => {
     },
     include: {
       Category: true,
+      subCategory: true,
+      brand: true,
+      reviews: true,
+      questions: true,
     },
   });
   return result;
@@ -143,7 +147,7 @@ const getProductById = async (id: string): Promise<Product | null> => {
 
 const updateIntoDB = async (
   id: string,
-  payload: Partial<Product>
+  payload: Partial<Product>,
 ): Promise<Product> => {
   const result = await prisma.product.update({
     where: {

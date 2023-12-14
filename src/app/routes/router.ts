@@ -12,6 +12,7 @@ import { authRoutes } from '../modules/authentication/auth.route';
 import { brandRoutes } from '../modules/brand/brand.route';
 import { subCategoryRoutes } from '../modules/sub-category/subCategory.route';
 import { questionRoutes } from '../modules/product-question/proQues.route';
+import { productReviewRoutes } from '../modules/product-Review/productReview.route';
 
 const router = express.Router();
 
@@ -64,6 +65,11 @@ const moduleRoutes = [
   {
     path: '/product-question',
     route: questionRoutes,
+  },
+
+  {
+    path: '/product-review',
+    route: productReviewRoutes,
   },
 ];
 
