@@ -13,6 +13,7 @@ import { brandRoutes } from '../modules/brand/brand.route';
 import { subCategoryRoutes } from '../modules/sub-category/subCategory.route';
 import { questionRoutes } from '../modules/product-question/proQues.route';
 import { productReviewRoutes } from '../modules/product-Review/productReview.route';
+import { cartRoutes } from '../modules/cart/cart.route';
 
 const router = express.Router();
 
@@ -70,6 +71,10 @@ const moduleRoutes = [
   {
     path: '/product-review',
     route: productReviewRoutes,
+  },
+  {
+    path: '/cart',
+    route: cartRoutes,
   },
 ];
 
