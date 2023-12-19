@@ -22,6 +22,7 @@
     "express-rate-limit": "^7.1.5",
     "http-status": "^1.7.0",
     "jsonwebtoken": "^9.0.2",
+    "node-cron": "^3.0.3",
     "nodemailer": "^6.9.7",
     "sslcommerz-lts": "^1.1.0",
     "zod": "^3.22.2"
