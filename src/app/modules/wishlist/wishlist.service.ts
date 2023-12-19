@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Wishlist } from '@prisma/client';
 import ApiError from '../../../errors/ApiError';
 
 const prisma = new PrismaClient();
@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 const addProductToWishlist = async (
   userId: string,
   productId: string,
-): Promise<any> => {
+): Promise<Wishlist> => {
   const wishlist = await prisma.wishlist.upsert({
     where: { id: userId }, // Assuming `id` is the unique identifier for Wishlist
     update: {

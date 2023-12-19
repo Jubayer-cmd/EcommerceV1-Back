@@ -15,6 +15,7 @@ import { questionRoutes } from '../modules/product-question/proQues.route';
 import { productReviewRoutes } from '../modules/product-Review/productReview.route';
 import { cartRoutes } from '../modules/cart/cart.route';
 import { wishlistRoutes } from '../modules/wishlist/wishlist.route';
+import { notificationRoutes } from '../modules/notifications/notification.route';
 
 const router = express.Router();
 
@@ -92,6 +93,11 @@ const moduleRoutes = [
   {
     path: '/wishlist',
     route: wishlistRoutes,
+  },
+
+  {
+    path: '/notification',
+    route: notificationRoutes,
   },
 ];
 
