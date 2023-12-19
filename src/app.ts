@@ -5,7 +5,7 @@ import express, { Application, NextFunction, Request, Response } from 'express';
 import httpStatus from 'http-status';
 import globalErrorHandler from './app/middleware/globalErrorHandler';
 import router from './app/routes/router';
-
+import morgan from 'morgan';
 const app: Application = express();
 
 //  apply to all requests
@@ -32,6 +32,7 @@ app.use(express.urlencoded({ extended: true }));
 //limit request
 app.use(limiter);
 
+app.use(morgan('dev'));
 //routes
 app.use('/api/v1', router);
 

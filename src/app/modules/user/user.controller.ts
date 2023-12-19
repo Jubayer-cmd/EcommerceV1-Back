@@ -1,20 +1,20 @@
-import { User } from "@prisma/client";
-import { Request, Response } from "express";
-import httpStatus from "http-status";
-import catchAsync from "../../../utils/catchAsync";
-import pick from "../../../utils/pick";
-import sendResponse from "../../../utils/sendResponse";
-import { userFilterableFields } from "./user.interface";
-import { userService } from "./user.service";
+import { User } from '@prisma/client';
+import { Request, Response } from 'express';
+import httpStatus from 'http-status';
+import catchAsync from '../../../utils/catchAsync';
+import pick from '../../../utils/pick';
+import sendResponse from '../../../utils/sendResponse';
+import { userFilterableFields } from './user.interface';
+import { userService } from './user.service';
 
 const getAllUser = catchAsync(async (req: Request, res: Response) => {
   const filters = pick(req.query, userFilterableFields);
-  const options = pick(req.query, ["limit", "page", "sortBy", "sortOrder"]);
+  const options = pick(req.query, ['limit', 'page', 'sortBy', 'sortOrder']);
   const result = await userService.getAllUser(filters, options);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: "Users retrieved successfully",
+    message: 'Users retrieved successfully',
     meta: result.meta,
     data: result.data,
   });
@@ -25,7 +25,7 @@ const getUserById = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: "User fetched successfully",
+    message: 'User fetched successfully',
     data: result,
   });
 });
@@ -35,7 +35,7 @@ const updateRoleToAdmin = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: "User role updated successfully",
+    message: 'User role updated successfully',
     data: result,
   });
 });
@@ -45,7 +45,7 @@ const deleteFromDB = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: "User deleted successfully",
+    message: 'User deleted successfully',
     data: result,
   });
 });
@@ -56,7 +56,7 @@ const updateIntoDB = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: "User updated successfully",
+    message: 'User updated successfully',
     data: result,
   });
 });

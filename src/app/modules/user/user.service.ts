@@ -1,13 +1,13 @@
-import { Prisma, User } from "@prisma/client";
-import { IGenericResponse } from "../../../interface/common";
-import { IPaginationOptions } from "../../../interface/pagination";
-import { paginationHelpers } from "../../../utils/paginationHelper";
-import prisma from "../../../utils/prisma";
-import { IUserFilterRequest, userSearchableFields } from "./user.interface";
+import { Prisma, User } from '@prisma/client';
+import { IGenericResponse } from '../../../interface/common';
+import { IPaginationOptions } from '../../../interface/pagination';
+import { paginationHelpers } from '../../../utils/paginationHelper';
+import prisma from '../../../utils/prisma';
+import { IUserFilterRequest, userSearchableFields } from './user.interface';
 
 const getAllUser = async (
   filters: IUserFilterRequest,
-  options: IPaginationOptions
+  options: IPaginationOptions,
 ): Promise<IGenericResponse<User[]>> => {
   const { limit, page, skip } = paginationHelpers.calculatePagination(options);
   const { searchTerm, ...filterData } = filters;
@@ -19,7 +19,7 @@ const getAllUser = async (
       OR: userSearchableFields.map((field) => ({
         [field]: {
           contains: searchTerm,
-          mode: "insensitive",
+          mode: 'insensitive',
         },
       })),
     });
@@ -68,8 +68,8 @@ const getUserById = async (id: string): Promise<User | null> => {
 };
 
 const getSingleUser = async (
-  id: string
-): Promise<Omit<User, "password"> | {}> => {
+  id: string,
+): Promise<Omit<User, 'password'> | {}> => {
   const user = await prisma.user.findUnique({
     where: {
       id: id,
@@ -81,7 +81,7 @@ const getSingleUser = async (
 
 const updateIntoDB = async (
   id: string,
-  payload: Partial<User>
+  payload: Partial<User>,
 ): Promise<User> => {
   const result = await prisma.user.update({
     where: {
@@ -94,7 +94,7 @@ const updateIntoDB = async (
 
 const updateRoleToAdmin = async (id: string): Promise<User> => {
   const payload = {
-    role: "admin", // Define the new role value here
+    role: 'admin', // Define the new role value here
   };
 
   const updatedUser = await prisma.user.update({

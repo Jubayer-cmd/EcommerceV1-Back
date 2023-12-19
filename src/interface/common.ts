@@ -1,4 +1,4 @@
-import { IGenericErrorMessage } from "./error";
+import { IGenericErrorMessage } from './error';
 
 export type IGenericResponse<T> = {
   meta: {
@@ -17,6 +17,6 @@ export type IGenericErrorResponse = {
 };
 
 export enum ENUM_USER_ROLE {
-  ADMIN = "admin",
-  CUSTOMER = "customer",
+  ADMIN = 'admin',
+  USER = 'user',
 }
