@@ -14,6 +14,7 @@ import { subCategoryRoutes } from '../modules/sub-category/subCategory.route';
 import { questionRoutes } from '../modules/product-question/proQues.route';
 import { productReviewRoutes } from '../modules/product-Review/productReview.route';
 import { cartRoutes } from '../modules/cart/cart.route';
+import { wishlistRoutes } from '../modules/wishlist/wishlist.route';
 
 const router = express.Router();
 
@@ -22,38 +23,47 @@ const moduleRoutes = [
     path: '/auth',
     route: authRoutes,
   },
+
   {
     path: '/',
     route: userRoutes,
   },
+
   {
     path: '/',
     route: categoryRoutes,
   },
+
   {
     path: '/',
     route: blogsRoutes,
   },
+
   {
     path: '/',
     route: serviceRoutes,
   },
+
   {
     path: '/',
     route: productRoutes,
   },
+
   {
     path: '/',
     route: reviewsRoutes,
   },
+
   {
     path: '/',
     route: BookingRoutes,
   },
+
   {
     path: '/',
     route: orderRoutes,
   },
+
   {
     path: '/brand',
     route: brandRoutes,
@@ -63,6 +73,7 @@ const moduleRoutes = [
     path: '/sub-category',
     route: subCategoryRoutes,
   },
+
   {
     path: '/product-question',
     route: questionRoutes,
@@ -72,9 +83,15 @@ const moduleRoutes = [
     path: '/product-review',
     route: productReviewRoutes,
   },
+
   {
     path: '/cart',
     route: cartRoutes,
+  },
+
+  {
+    path: '/wishlist',
+    route: wishlistRoutes,
   },
 ];
 
