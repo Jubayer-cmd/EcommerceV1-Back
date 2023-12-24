@@ -9,8 +9,8 @@ const initPayment = async (data: any) => {
   const paymentSession = await sslService.initPayment({
     total_amount: data.amount,
     tran_id: data.transactionId,
-    cus_name: data.studentName,
-    cus_email: data.studentEmail,
+    cus_name: data.name,
+    cus_email: data.email,
     cus_add1: data.address,
     cus_phone: data.phone,
   });
@@ -20,6 +20,7 @@ const initPayment = async (data: any) => {
       amount: data.amount,
       transactionId: data.transactionId,
       userId: data.userId,
+      paymentMethod: data.paymentMethod,
     },
   });
   console.log(paymentSession);

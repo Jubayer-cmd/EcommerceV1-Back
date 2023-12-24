@@ -1,5 +1,11 @@
 -- CreateEnum
+CREATE TYPE "NotificationType" AS ENUM ('promotional', 'order', 'product', 'service');
+
+-- CreateEnum
 CREATE TYPE "PaymentStatus" AS ENUM ('pending', 'succeeded', 'failed', 'refunded');
+
+-- CreateEnum
+CREATE TYPE "PaymentMethod" AS ENUM ('online', 'COD');
 
 -- CreateEnum
 CREATE TYPE "Role" AS ENUM ('superadmin', 'admin', 'user');
@@ -121,7 +127,10 @@ CREATE TABLE "notification" (
     "id" TEXT NOT NULL,
     "title" TEXT NOT NULL,
     "content" TEXT NOT NULL,
+    "notificationType" "NotificationType" NOT NULL,
     "isRead" BOOLEAN NOT NULL DEFAULT false,
+    "orderId" TEXT,
+    "productId" TEXT,
     "userId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -157,6 +166,7 @@ CREATE TABLE "order" (
     "postcode" TEXT NOT NULL,
     "note" TEXT,
     "phone" TEXT NOT NULL,
+    "paymentId" TEXT,
 
     CONSTRAINT "order_pkey" PRIMARY KEY ("id")
 );
@@ -232,8 +242,11 @@ CREATE TABLE "wishlist" (
 CREATE TABLE "payment" (
     "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
+    "paymentMethod" "PaymentMethod" NOT NULL,
     "amount" DOUBLE PRECISION NOT NULL,
-    "paymentStatus" "PaymentStatus" NOT NULL,
+    "paymentStatus" "PaymentStatus" NOT NULL DEFAULT 'pending',
+    "transactionId" TEXT NOT NULL,
+    "paymentGatewayData" JSONB,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -286,6 +299,12 @@ ALTER TABLE "product_question" ADD CONSTRAINT "product_question_productId_fkey" 
 ALTER TABLE "product_question" ADD CONSTRAINT "product_question_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "notification" ADD CONSTRAINT "notification_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "order"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "notification" ADD CONSTRAINT "notification_productId_fkey" FOREIGN KEY ("productId") REFERENCES "product"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "notification" ADD CONSTRAINT "notification_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -293,6 +312,9 @@ ALTER TABLE "user_review" ADD CONSTRAINT "user_review_serviceId_fkey" FOREIGN KE
 
 -- AddForeignKey
 ALTER TABLE "user_review" ADD CONSTRAINT "user_review_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "order" ADD CONSTRAINT "order_paymentId_fkey" FOREIGN KEY ("paymentId") REFERENCES "payment"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "order" ADD CONSTRAINT "order_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { PaymentService } from "./payment.serrvice";
+import { PaymentService } from "./payment.service";
 import sendResponse from "../../../utils/sendResponse";
 import httpStatus from "http-status";
 import { paymentFilterableFields } from "./payment.constant";
