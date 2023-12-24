@@ -21,4 +21,11 @@ export default {
   email: process.env.EMAIL,
   appPass: process.env.APP_PASS,
   clientUrl: process.env.CLIENT_URL,
+
+  ssl: {
+    storeId: process.env.STORE_ID,
+    storePass: process.env.STORE_PASS,
+    sslPaymentUrl: process.env.SSL_BASE_PAYMENT_URL,
+    sslValidationUrl: process.env.SSL_BASE_VALIDATION_URL,
+  },
 };
