@@ -5,6 +5,8 @@ import { IGenericResponse } from '../../../interface/common';
 import { paginationHelpers } from '../../../utils/paginationHelper';
 import { paymentSearchableFields } from './payment.constant';
 
+//TODO : add payment method
+
 const initPayment = async (data: any) => {
   const paymentSession = await sslService.initPayment({
     total_amount: data.amount,

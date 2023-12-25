@@ -1,4 +1,13 @@
 -- CreateEnum
+CREATE TYPE "TicketStatus" AS ENUM ('open', 'closed', 'pending');
+
+-- CreateEnum
+CREATE TYPE "PromotionType" AS ENUM ('discount', 'flash_sale', 'seasonal_offer');
+
+-- CreateEnum
+CREATE TYPE "ConditionType" AS ENUM ('minimum_purchase_amount', 'specific_products');
+
+-- CreateEnum
 CREATE TYPE "NotificationType" AS ENUM ('promotional', 'order', 'product', 'service');
 
 -- CreateEnum
@@ -152,36 +161,6 @@ CREATE TABLE "user_review" (
 );
 
 -- CreateTable
-CREATE TABLE "order" (
-    "id" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
-    "totalAmount" DOUBLE PRECISION NOT NULL,
-    "firstName" TEXT NOT NULL,
-    "lastName" TEXT NOT NULL,
-    "status" "OrderStatus" NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-    "address" TEXT NOT NULL,
-    "city" TEXT NOT NULL,
-    "postcode" TEXT NOT NULL,
-    "note" TEXT,
-    "phone" TEXT NOT NULL,
-    "paymentId" TEXT,
-
-    CONSTRAINT "order_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "order_product" (
-    "id" TEXT NOT NULL,
-    "orderId" TEXT NOT NULL,
-    "productId" TEXT NOT NULL,
-    "quantity" INTEGER NOT NULL,
-
-    CONSTRAINT "order_product_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "booking" (
     "id" TEXT NOT NULL,
     "serviceId" TEXT NOT NULL,
@@ -239,18 +218,101 @@ CREATE TABLE "wishlist" (
 );
 
 -- CreateTable
+CREATE TABLE "order" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "totalAmount" DOUBLE PRECISION NOT NULL,
+    "firstName" TEXT NOT NULL,
+    "lastName" TEXT NOT NULL,
+    "paymentMethod" "PaymentMethod" NOT NULL,
+    "status" "OrderStatus" NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "address" TEXT NOT NULL,
+    "city" TEXT NOT NULL,
+    "postcode" TEXT NOT NULL,
+    "note" TEXT,
+    "phone" TEXT NOT NULL,
+
+    CONSTRAINT "order_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "order_product" (
+    "id" TEXT NOT NULL,
+    "orderId" TEXT NOT NULL,
+    "productId" TEXT NOT NULL,
+    "quantity" INTEGER NOT NULL,
+
+    CONSTRAINT "order_product_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "payment" (
     "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
-    "paymentMethod" "PaymentMethod" NOT NULL,
     "amount" DOUBLE PRECISION NOT NULL,
     "paymentStatus" "PaymentStatus" NOT NULL DEFAULT 'pending',
     "transactionId" TEXT NOT NULL,
     "paymentGatewayData" JSONB,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "orderId" TEXT,
 
     CONSTRAINT "payment_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "support_ticket" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "title" TEXT NOT NULL,
+    "description" TEXT NOT NULL,
+    "status" "TicketStatus" NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "support_ticket_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "promotion" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "description" TEXT,
+    "type" "PromotionType" NOT NULL,
+    "startDate" TIMESTAMP(3) NOT NULL,
+    "endDate" TIMESTAMP(3) NOT NULL,
+    "discount" DOUBLE PRECISION NOT NULL,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "promotion_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "promotion_conditions" (
+    "id" TEXT NOT NULL,
+    "conditionType" "ConditionType" NOT NULL,
+    "value" TEXT NOT NULL,
+    "promotionId" TEXT NOT NULL,
+
+    CONSTRAINT "promotion_conditions_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "coupon" (
+    "id" TEXT NOT NULL,
+    "code" TEXT NOT NULL,
+    "discount" DOUBLE PRECISION NOT NULL,
+    "validFrom" TIMESTAMP(3) NOT NULL,
+    "validTo" TIMESTAMP(3) NOT NULL,
+    "description" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "coupon_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -267,6 +329,9 @@ CREATE UNIQUE INDEX "user_phone_key" ON "user"("phone");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "cart_userId_key" ON "cart"("userId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "coupon_code_key" ON "coupon"("code");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "_ProductToWishlist_AB_unique" ON "_ProductToWishlist"("A", "B");
@@ -314,18 +379,6 @@ ALTER TABLE "user_review" ADD CONSTRAINT "user_review_serviceId_fkey" FOREIGN KE
 ALTER TABLE "user_review" ADD CONSTRAINT "user_review_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "order" ADD CONSTRAINT "order_paymentId_fkey" FOREIGN KEY ("paymentId") REFERENCES "payment"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "order" ADD CONSTRAINT "order_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "order_product" ADD CONSTRAINT "order_product_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "order"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "order_product" ADD CONSTRAINT "order_product_productId_fkey" FOREIGN KEY ("productId") REFERENCES "product"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "booking" ADD CONSTRAINT "booking_serviceId_fkey" FOREIGN KEY ("serviceId") REFERENCES "service"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -347,7 +400,22 @@ ALTER TABLE "cart_item" ADD CONSTRAINT "cart_item_productId_fkey" FOREIGN KEY ("
 ALTER TABLE "wishlist" ADD CONSTRAINT "wishlist_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "order" ADD CONSTRAINT "order_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "order_product" ADD CONSTRAINT "order_product_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "order"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "order_product" ADD CONSTRAINT "order_product_productId_fkey" FOREIGN KEY ("productId") REFERENCES "product"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "payment" ADD CONSTRAINT "payment_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "payment" ADD CONSTRAINT "payment_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "order"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "promotion_conditions" ADD CONSTRAINT "promotion_conditions_promotionId_fkey" FOREIGN KEY ("promotionId") REFERENCES "promotion"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "_ProductToWishlist" ADD CONSTRAINT "_ProductToWishlist_A_fkey" FOREIGN KEY ("A") REFERENCES "product"("id") ON DELETE CASCADE ON UPDATE CASCADE;

@@ -1,16 +1,17 @@
-import { Order, Prisma } from "@prisma/client";
-import { IGenericResponse } from "../../../interface/common";
-import { IPaginationOptions } from "../../../interface/pagination";
-import { paginationHelpers } from "../../../utils/paginationHelper";
-import prisma from "../../../utils/prisma";
+import { Order, Prisma, OrderProduct } from '@prisma/client';
+import { IGenericResponse } from '../../../interface/common';
+import { IPaginationOptions } from '../../../interface/pagination';
+import { paginationHelpers } from '../../../utils/paginationHelper';
+import prisma from '../../../utils/prisma';
 import {
   IOrderFilterRequest,
   orderRelationalFields,
   orderRelationalFieldsMapper,
   orderSearchableFields,
-} from "./order.constants";
+} from './order.constants';
+import { sslService } from '../../middleware/ssl.service';
 
-const createOrder = async (data: Order): Promise<Order> => {
+const createOrder = async (data: Order): Promise<Order | string> => {
   const {
     userId,
     totalAmount,
@@ -22,22 +23,19 @@ const createOrder = async (data: Order): Promise<Order> => {
     postcode,
     note,
     phone,
-    //@ts-ignore
+    paymentMethod,
+    // @ts-ignore
     orderProduct,
   } = data;
 
-  try {
-    // Begin a transaction
+  if (paymentMethod === 'COD') {
+    // If payment method is cash on delivery, create order directly without creating a payment
     const order = await prisma.$transaction(async (prisma) => {
-      // Create an array of OrderProduct objects with quantity
       const orderProductData = orderProduct.map((product: any) => ({
         productId: product.productId,
-        quantity: product.quantity, // Include the quantity field
+        quantity: product.quantity,
       }));
 
-      console.log("orderProductData", orderProductData);
-
-      // Create the order and associated order products within the transaction
       const createdOrder = await prisma.order.create({
         data: {
           userId,
@@ -49,6 +47,7 @@ const createOrder = async (data: Order): Promise<Order> => {
           city,
           postcode,
           note,
+          paymentMethod,
           phone,
           orderProduct: {
             create: orderProductData,
@@ -56,20 +55,29 @@ const createOrder = async (data: Order): Promise<Order> => {
         },
       });
 
-      // Commit the transaction
       return createdOrder;
     });
 
     return order;
-  } catch (error) {
-    // Handle any errors here
-    throw error;
   }
+
+  // If payment method is online, initiate the payment process through the payment gateway
+  const paymentSession = await sslService.initPayment({
+    total_amount: totalAmount,
+    tran_id: 'unique_transaction_id', // Generate a unique transaction ID here
+    cus_name: `${firstName} ${lastName}`,
+    cus_email: 'sheikhabujubayer@gmail.com', // Add the email logic here
+    cus_add1: address,
+    cus_phone: phone,
+  });
+
+  // Return the URL to redirect for online payment
+  return paymentSession.redirectGatewayURL;
 };
 
 const getAllOrders = async (
   filters: IOrderFilterRequest,
-  options: IPaginationOptions
+  options: IPaginationOptions,
 ): Promise<IGenericResponse<Order[]>> => {
   const { limit, page, skip } = paginationHelpers.calculatePagination(options);
   const { searchTerm, ...filterData } = filters;
@@ -81,7 +89,7 @@ const getAllOrders = async (
       OR: orderSearchableFields.map((field) => ({
         [field]: {
           contains: searchTerm,
-          mode: "insensitive",
+          mode: 'insensitive',
         },
       })),
     });
@@ -123,7 +131,7 @@ const getAllOrders = async (
     skip,
     take: limit,
     orderBy: {
-      createdAt: "desc",
+      createdAt: 'desc',
     },
   });
 
@@ -154,7 +162,7 @@ const getAllOrdersByUserId = async (userId: string): Promise<Order[]> => {
       },
     },
     orderBy: {
-      createdAt: "desc",
+      createdAt: 'desc',
     },
   });
   return result;
@@ -178,7 +186,7 @@ const getOrderById = async (id: string): Promise<Order | null> => {
 
 const updateOrder = async (
   id: string,
-  payload: Partial<Order>
+  payload: Partial<Order>,
 ): Promise<Order> => {
   const result = await prisma.order.update({
     where: {

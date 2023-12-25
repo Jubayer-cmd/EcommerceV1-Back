@@ -4,6 +4,7 @@ import { IPaginationOptions } from '../../../interface/pagination';
 import { paginationHelpers } from '../../../utils/paginationHelper';
 import prisma from '../../../utils/prisma';
 import { IUserFilterRequest, userSearchableFields } from './user.interface';
+import { deleteImage } from '../../middleware/upload-file';
 
 const getAllUser = async (
   filters: IUserFilterRequest,
@@ -83,6 +84,16 @@ const updateIntoDB = async (
   id: string,
   payload: Partial<User>,
 ): Promise<User> => {
+  const user = await prisma.user.findUnique({
+    where: {
+      id: id,
+    },
+  });
+
+  if ((user?.image?.length ?? 0) > 0 && (payload?.image?.length ?? 0) > 0) {
+    deleteImage(user?.image ?? '');
+  }
+
   const result = await prisma.user.update({
     where: {
       id,

@@ -167,40 +167,6 @@ model UserReview {
   @@map("user_review")
 }
 
-model Order {
-  id           String         @id @default(uuid())
-  userId       String
-  totalAmount  Float
-  firstName    String
-  lastName     String
-  status       OrderStatus
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  orderProduct OrderProduct[]
-  address      String
-  city         String
-  postcode     String
-  note         String?
-  phone        String
-  payment      Payment?       @relation(fields: [paymentId], references: [id]) // Reference to Payment
-  paymentId    String?
-  User         User           @relation(fields: [userId], references: [id])
-  Notification Notification[]
-
-  @@map("order")
-}
-
-model OrderProduct {
-  id        String  @id @default(uuid())
-  orderId   String
-  order     Order   @relation(fields: [orderId], references: [id])
-  productId String
-  product   Product @relation(fields: [productId], references: [id])
-  quantity  Int
-
-  @@map("order_product")
-}
-
 model Booking {
   id        String        @id @default(uuid())
   serviceId String
@@ -214,6 +180,17 @@ model Booking {
 
   @@map("booking")
 }
+
+model CarouselImage {
+  id           String         @id @default(uuid())
+  imageUrls    String[]       // Array to store multiple image URLs
+  targetId     String         // ID of the associated item (e.g., Product, Category, Promotion, etc.)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@map("carousel_image")
+}
+
 
 model Blog {
   id         String   @id @default(uuid())
@@ -262,20 +239,125 @@ model Wishlist {
   @@map("wishlist")
 }
 
+model Order {
+  id            String         @id @default(uuid())
+  userId        String
+  totalAmount   Float
+  firstName     String
+  lastName      String
+  paymentMethod PaymentMethod
+  status        OrderStatus
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  orderProduct  OrderProduct[]
+  address       String
+  city          String
+  postcode      String
+  note          String?
+  phone         String
+  User          User           @relation(fields: [userId], references: [id])
+  Notification  Notification[]
+  Payment       Payment[]
+
+  @@map("order")
+}
+
+model OrderProduct {
+  id        String  @id @default(uuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id])
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int
+
+  @@map("order_product")
+}
+
 model Payment {
   id                 String        @id @default(uuid())
   user               User          @relation(fields: [userId], references: [id])
   userId             String
-  paymentMethod      PaymentMethod  
   amount             Float
   paymentStatus      PaymentStatus @default(pending)
   transactionId      String
   paymentGatewayData Json?
   createdAt          DateTime      @default(now())
   updatedAt          DateTime      @updatedAt
-  Order              Order[]
+  orderId            String? // Updated to link to Order
+  Order              Order?        @relation(fields: [orderId], references: [id])
 
   @@map("payment")
+}
+
+model SupportTicket {
+  id          String       @id @default(uuid())
+  userId      String // Reference to the user creating the ticket
+  title       String
+  description String
+  status      TicketStatus // Enum: open, closed, pending, etc.
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@map("support_ticket")
+}
+
+enum TicketStatus {
+  open
+  closed
+  pending
+  // Add more statuses as needed
+}
+
+model Promotion {
+  id          String                @id @default(uuid())
+  name        String
+  description String?
+  type        PromotionType // Enum: discount, flash_sale, seasonal_offer, etc.
+  startDate   DateTime
+  endDate     DateTime
+  conditions  PromotionConditions[] // Conditions for the promotion (e.g., minimum purchase amount, specific products, etc.)
+  discount    Float // Discount value (either percentage or fixed amount)
+  isActive    Boolean               @default(true)
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+
+  @@map("promotion")
+}
+
+model PromotionConditions {
+  id            String        @id @default(uuid())
+  conditionType ConditionType // Enum: minimum_purchase_amount, specific_products, etc.
+  value         String // Condition value (e.g., "$100", "product_id", etc.)
+  promotion     Promotion     @relation(fields: [promotionId], references: [id])
+  promotionId   String
+
+  @@map("promotion_conditions")
+}
+
+enum PromotionType {
+  discount
+  flash_sale
+  seasonal_offer
+  // Add more types as needed
+}
+
+enum ConditionType {
+  minimum_purchase_amount
+  specific_products
+  // Add more conditions as needed
+}
+
+model Coupon {
+  id          String   @id @default(uuid())
+  code        String   @unique
+  discount    Float // The discount percentage or amount
+  validFrom   DateTime // Start date of the validity period
+  validTo     DateTime // End date of the validity period
+  description String? // Optional description for the coupon
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("coupon")
 }
 
 enum NotificationType {

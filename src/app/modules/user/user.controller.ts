@@ -52,6 +52,11 @@ const deleteFromDB = catchAsync(async (req: Request, res: Response) => {
 
 const updateIntoDB = catchAsync(async (req: Request, res: Response) => {
   console.log(req.params.id, req.body);
+  const image = req?.file?.path;
+  const newImagePath = `file:///D:/ecommerce/${image}`;
+  if (image) {
+    req.body.image = image;
+  }
   const result = await userService.updateIntoDB(req.params.id, req.body);
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -68,7 +73,7 @@ const getProfile = catchAsync(async (req: Request, res: Response) => {
   sendResponse<Partial<User>>(res, {
     statusCode: 200,
     success: true,
-    message: "Profile retrieved successfully",
+    message: 'Profile retrieved successfully',
     data: result,
   });
 });
