@@ -311,6 +311,7 @@ enum TicketStatus {
 model Promotion {
   id          String                @id @default(uuid())
   name        String
+  image       String?
   description String?
   type        PromotionType // Enum: discount, flash_sale, seasonal_offer, etc.
   startDate   DateTime
