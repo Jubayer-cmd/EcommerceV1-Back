@@ -361,6 +361,18 @@ model Coupon {
   @@map("coupon")
 }
 
+
+model HomepageCarousel {
+  id           String    @id @default(uuid())
+  imageUrls    String[]  // Array to store multiple image URLs (optional if needed)
+  files        String[]  // Array to store references to the uploaded files
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@map("homepage_carousel")
+}
+
+
 enum NotificationType {
   promotional
   order

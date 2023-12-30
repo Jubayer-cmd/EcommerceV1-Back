@@ -22,7 +22,7 @@ const initPayment = async (data: any) => {
       amount: data.amount,
       transactionId: data.transactionId,
       userId: data.userId,
-      paymentMethod: data.paymentMethod,
+      // paymentMethod: data.paymentMethod,
     },
   });
   console.log(paymentSession);
