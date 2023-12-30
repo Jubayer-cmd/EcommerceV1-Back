@@ -19,6 +19,7 @@ import { notificationRoutes } from '../modules/notifications/notification.route'
 import { paymentRoutes } from '../modules/payment/payment.route';
 import { supportTicketsRoutes } from '../modules/supportTicket/supportTicket.route';
 import { productReviewRoutes } from '../modules/product-review/productReview.route';
+import { carouselRoutes } from '../modules/HomepageCarousel/carousel.route';
 
 const router = express.Router();
 
@@ -111,6 +112,11 @@ const moduleRoutes = [
   {
     path: '/support',
     route: supportTicketsRoutes,
+  },
+
+  {
+    path: '/carousel',
+    route: carouselRoutes,
   },
 ];
 
