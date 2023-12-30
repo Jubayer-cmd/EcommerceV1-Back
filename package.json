@@ -10,7 +10,7 @@
     "postinstall": "prisma generate"
   },
   "keywords": [],
-  "author": "",
+  "author": "jubayer-cmd",
   "license": "ISC",
   "dependencies": {
     "@prisma/client": "^5.7.1",
