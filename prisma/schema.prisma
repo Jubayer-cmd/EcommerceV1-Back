@@ -32,6 +32,22 @@ model User {
   @@map("user")
 }
 
+model UserFile {
+  id          String   @id @default(uuid())
+  title       String
+  url         String
+  asset_id    String
+  format      String
+  width       Int
+  height      Int
+  bytes       Int
+  description String?  @default("")
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  @@map("user_files")
+}
+
 model Service {
   id          String       @id @default(uuid())
   name        String
@@ -182,15 +198,14 @@ model Booking {
 }
 
 model CarouselImage {
-  id           String         @id @default(uuid())
-  imageUrls    String[]       // Array to store multiple image URLs
-  targetId     String         // ID of the associated item (e.g., Product, Category, Promotion, etc.)
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
+  id        String   @id @default(uuid())
+  imageUrls String[] // Array to store multiple image URLs
+  targetId  String // ID of the associated item (e.g., Product, Category, Promotion, etc.)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("carousel_image")
 }
-
 
 model Blog {
   id         String   @id @default(uuid())
@@ -361,17 +376,15 @@ model Coupon {
   @@map("coupon")
 }
 
-
 model HomepageCarousel {
-  id           String    @id @default(uuid())
-  imageUrls    String[]  // Array to store multiple image URLs (optional if needed)
-  files        String[]  // Array to store references to the uploaded files
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id        String   @id @default(uuid())
+  imageUrls String[] // Array to store multiple image URLs (optional if needed)
+  files     String[] // Array to store references to the uploaded files
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("homepage_carousel")
 }
-
 
 enum NotificationType {
   promotional
