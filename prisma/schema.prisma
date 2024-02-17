@@ -102,7 +102,10 @@ model Product {
   name          String
   description   String?
   image         String?
-  price         Float
+  price         Float?
+  unit          Float?
+  size          String?
+  color         String?
   brand         Brand?            @relation(fields: [brandId], references: [id])
   brandId       String?
   subCategory   SubCategory?      @relation(fields: [subCategoryId], references: [id])
@@ -385,6 +388,17 @@ model HomepageCarousel {
 
   @@map("homepage_carousel")
 }
+
+model AnalyticsData{
+  id        String   @id @default(uuid())
+  loginCount Int? 
+  registerCount Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("analytics")
+}
+
 
 enum NotificationType {
   promotional

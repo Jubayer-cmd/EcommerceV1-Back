@@ -87,6 +87,7 @@ const getAllProducts = async (
     data: result,
   };
 };
+
 // get by category
 const getProductsbyCategoryService = async (
   id: string,

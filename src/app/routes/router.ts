@@ -18,104 +18,105 @@ import { wishlistRoutes } from '../modules/wishlist/wishlist.route';
 import { notificationRoutes } from '../modules/notifications/notification.route';
 import { paymentRoutes } from '../modules/payment/payment.route';
 import { supportTicketsRoutes } from '../modules/supportTicket/supportTicket.route';
-import { productReviewRoutes } from '../modules/product-review/productReview.route';
+
 import { carouselRoutes } from '../modules/HomepageCarousel/carousel.route';
+import { productReviewRoutes } from '../modules/product-Review/productReview.route';
 
 const router = express.Router();
 
 const moduleRoutes = [
   {
-    path: '/auth',
+    path: "/auth",
     route: authRoutes,
   },
 
   {
-    path: '/user',
+    path: "/user",
     route: userRoutes,
   },
 
   {
-    path: '/',
+    path: "/categories",
     route: categoryRoutes,
   },
 
   {
-    path: '/',
+    path: "/",
     route: blogsRoutes,
   },
 
   {
-    path: '/',
+    path: "/",
     route: serviceRoutes,
   },
 
   {
-    path: '/',
+    path: "/products",
     route: productRoutes,
   },
 
   {
-    path: '/',
+    path: "/",
     route: reviewsRoutes,
   },
 
   {
-    path: '/',
+    path: "/",
     route: BookingRoutes,
   },
 
   {
-    path: '/',
+    path: "/",
     route: orderRoutes,
   },
 
   {
-    path: '/brand',
+    path: "/brands",
     route: brandRoutes,
   },
 
   {
-    path: '/sub-category',
+    path: "/sub-categories",
     route: subCategoryRoutes,
   },
 
   {
-    path: '/product-question',
+    path: "/product-question",
     route: questionRoutes,
   },
 
   {
-    path: '/product-review',
+    path: "/product-review",
     route: productReviewRoutes,
   },
 
   {
-    path: '/cart',
+    path: "/cart",
     route: cartRoutes,
   },
 
   {
-    path: '/wishlist',
+    path: "/wishlist",
     route: wishlistRoutes,
   },
 
   {
-    path: '/notification',
+    path: "/notification",
     route: notificationRoutes,
   },
 
   {
-    path: '/payment',
+    path: "/payment",
     route: paymentRoutes,
   },
 
   {
-    path: '/support',
+    path: "/support",
     route: supportTicketsRoutes,
   },
 
   {
-    path: '/carousel',
+    path: "/carousel",
     route: carouselRoutes,
   },
 ];

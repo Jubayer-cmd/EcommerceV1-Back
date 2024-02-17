@@ -6,15 +6,15 @@ import { CategoryValidation } from "./category.validation";
 const router = express.Router();
 
 router.post(
-  "/categories/create-category",
+  "/create-category",
   validateRequest(CategoryValidation.createCategory),
   categoryController.insertIntoDB
 );
-router.get("/categories", categoryController.getAllFromDb);
-router.get("/categories/:id", categoryController.getUserById);
-router.delete("/categories/:id", categoryController.deleteFromDB);
+router.get("/", categoryController.getAllFromDb);
+router.get("/:id", categoryController.getUserById);
+router.delete("/:id", categoryController.deleteFromDB);
 router.patch(
-  "/categories/:id",
+  "/:id",
   validateRequest(CategoryValidation.updateCategory),
   categoryController.updateIntoDB
 );
