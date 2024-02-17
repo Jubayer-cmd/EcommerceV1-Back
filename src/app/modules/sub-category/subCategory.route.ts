@@ -10,11 +10,11 @@ router.post(
   validateRequest(SubCategoryValidation.createSubCategory),
   subCategoryController.insertIntoDB,
 );
-router.get('/subCategories', subCategoryController.getAllFromDb);
-router.get('/subCategories/:id', subCategoryController.getUserById);
-router.delete('/subCategories/:id', subCategoryController.deleteFromDB);
+router.get('/', subCategoryController.getAllFromDb);
+router.get('/:id', subCategoryController.getUserById);
+router.delete('/:id', subCategoryController.deleteFromDB);
 router.patch(
-  '/subCategories/:id',
+  '/:id',
   validateRequest(SubCategoryValidation.updateSubCategory),
   subCategoryController.updateIntoDB,
 );
