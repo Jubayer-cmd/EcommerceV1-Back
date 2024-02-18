@@ -1,10 +1,17 @@
 import { Brand } from '@prisma/client';
 import prisma from '../../../utils/prisma';
+import ApiError from '../../../errors/ApiError';
 
-const insertIntoDB = async (data: Brand): Promise<Brand> => {
+const insertIntoDB = async (brand: Brand): Promise<Brand> => {
   const result = await prisma.brand.create({
-    data,
+    data:brand,
   });
+
+  
+
+  if(!result){
+    throw new ApiError(400,'failed to create new brand')
+  }
   return result;
 };
 
