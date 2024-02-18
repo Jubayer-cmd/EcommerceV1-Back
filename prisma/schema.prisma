@@ -65,6 +65,9 @@ model Category {
   id          String        @id @default(uuid())
   name        String
   description String?
+  image       String?
+  banner      String?
+  isFeatured  Boolean       @default(true)
   products    Product[]
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
@@ -77,6 +80,9 @@ model Brand {
   id          String    @id @default(uuid())
   name        String
   description String?
+  image       String?
+  banner      String?
+  status      Boolean   @default(true)
   products    Product[]
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -88,6 +94,7 @@ model SubCategory {
   id          String    @id @default(uuid())
   name        String
   description String?
+  status      Boolean   @default(true)
   category    Category  @relation(fields: [categoryId], references: [id])
   categoryId  String
   products    Product[]
@@ -98,32 +105,48 @@ model SubCategory {
 }
 
 model Product {
-  id            String            @id @default(uuid())
+  id            String             @id @default(uuid())
   name          String
   description   String?
   image         String?
   price         Float?
-  unit          Float?
-  size          String?
-  color         String?
-  brand         Brand?            @relation(fields: [brandId], references: [id])
+  unit          String?
+  brand         Brand?             @relation(fields: [brandId], references: [id])
   brandId       String?
-  subCategory   SubCategory?      @relation(fields: [subCategoryId], references: [id])
+  subCategory   SubCategory?       @relation(fields: [subCategoryId], references: [id])
   subCategoryId String?
   stock         String?
   quantity      Int
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
   OrderProduct  OrderProduct[]
-  Category      Category?         @relation(fields: [categoryId], references: [id])
+  Category      Category?          @relation(fields: [categoryId], references: [id])
   categoryId    String?
   cartItems     CartItem[]
   wishlists     Wishlist[]
   reviews       ProductReview[]
   questions     ProductQuestion[]
   Notification  Notification[]
+  variations    ProductVariation[]
 
   @@map("product")
+}
+
+model ProductVariation {
+  id        String   @id @default(uuid())
+  name      String
+  image     String?
+  size      String?
+  color     String?
+  shape     String?
+  material  String?
+  stock     String?
+  weight    Float?
+  quantity  Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  product   Product  @relation(fields: [productId], references: [id])
+  productId String
 }
 
 model ProductReview {
@@ -389,16 +412,15 @@ model HomepageCarousel {
   @@map("homepage_carousel")
 }
 
-model AnalyticsData{
-  id        String   @id @default(uuid())
-  loginCount Int? 
+model AnalyticsData {
+  id            String   @id @default(uuid())
+  loginCount    Int?
   registerCount Int?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   @@map("analytics")
 }
-
 
 enum NotificationType {
   promotional
