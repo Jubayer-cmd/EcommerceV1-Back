@@ -5,7 +5,9 @@ import catchAsync from '../../../utils/catchAsync';
 import sendResponse from '../../../utils/sendResponse';
 import { supportTicketService } from './supportTicket.service';
 import pick from '../../../utils/pick';
-import { supportTicketSearchableFields } from './supportTicket.interface';
+import { supportTicketSearchableFields } from './supportTicket.constant';
+
+
 
 const insertIntoDB = catchAsync(async (req: Request, res: Response) => {
   const result = await supportTicketService.insertIntoDB(req.body);
@@ -20,7 +22,8 @@ const insertIntoDB = catchAsync(async (req: Request, res: Response) => {
 const getsupportTickets = catchAsync(async (req: Request, res: Response) => {
   const filters = pick(req.query, supportTicketSearchableFields);
   const options = pick(req.query, ['limit', 'page', 'sortBy', 'sortOrder']);
-  const result = await supportTicketService.getAllFromDb(filters, options);
+  
+  const result = await supportTicketService.getAllFromDb(filters,options);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,

@@ -1,25 +1,28 @@
 import { Prisma, SupportTicket } from '@prisma/client';
 import prisma from '../../../utils/prisma';
-import {
-  IsupportTicketFilterRequest,
-  supportTicketRelationalFields,
-  supportTicketRelationalFieldsMapper,
-  supportTicketSearchableFields,
-} from './supportTicket.interface';
+
 import { IPaginationOptions } from '../../../interface/pagination';
 import { IGenericResponse } from '../../../interface/common';
 import { paginationHelpers } from '../../../utils/paginationHelper';
 
+import generateTicketNumber from '../../../helpers/ticketNumberGenerate';
+import { IsupportTicketFilterRequest, supportTicketRelationalFields, supportTicketRelationalFieldsMapper, supportTicketSearchableFields } from './supportTicket.constant';
+
 const insertIntoDB = async (data: SupportTicket): Promise<SupportTicket> => {
+
+  const ticketNumber = generateTicketNumber();
   const result = await prisma.supportTicket.create({
-    data,
+    data: {
+      ...data,
+      ticketNumber: parseInt(ticketNumber)
+    },
   });
   return result;
 };
 
 const getAllFromDb = async (
   filters: IsupportTicketFilterRequest,
-  options: IPaginationOptions,
+  options: IPaginationOptions
 ): Promise<IGenericResponse<SupportTicket[]>> => {
   const { limit, page, skip } = paginationHelpers.calculatePagination(options);
   const { searchTerm, ...filterData } = filters;
@@ -31,7 +34,7 @@ const getAllFromDb = async (
       OR: supportTicketSearchableFields.map((field) => ({
         [field]: {
           contains: searchTerm,
-          mode: 'insensitive',
+          mode: "insensitive",
         },
       })),
     });
@@ -68,7 +71,7 @@ const getAllFromDb = async (
       options.sortBy && options.sortOrder
         ? { [options.sortBy]: options.sortOrder }
         : {
-            createdAt: 'desc',
+            createdAt: "desc",
           },
   });
   const total = await prisma.supportTicket.count({

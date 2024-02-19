@@ -8,7 +8,7 @@ import { SupportTicketValidation } from './supportTicket.validation';
 const router = express.Router();
 
 router.post(
-  '/',
+  '/create-support-ticket',
   validateRequest(SupportTicketValidation.createSupportTicket),
   supportTicketsController.insertIntoDB,
 );
@@ -19,7 +19,7 @@ router.delete('/:id', supportTicketsController.deleteFromDB);
 
 router.patch(
   '/:id',
-  auth(ENUM_USER_ROLE.ADMIN),
+  // auth(ENUM_USER_ROLE.ADMIN),
   validateRequest(SupportTicketValidation.updateSupportTicket),
   supportTicketsController.updateIntoDB,
 );

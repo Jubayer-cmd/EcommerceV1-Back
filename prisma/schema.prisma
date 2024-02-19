@@ -23,11 +23,12 @@ model User {
   Blog             Blog[]
   Booking          Booking[]
   Notification     Notification[]
-  Cart             Cart? // New relationship: User's Cart
+  Cart             Cart? 
   Wishlist         Wishlist[] // New relationship: User's Wishlist
   Payment          Payment[] // New relationship: User's Payments
   productReviews   ProductReview[]
   productQuestions ProductQuestion[]
+  supportTicket    SupportTicket[]
 
   @@map("user")
 }
@@ -128,6 +129,7 @@ model Product {
   questions     ProductQuestion[]
   Notification  Notification[]
   variations    ProductVariation[]
+  flashSaleProduct FlashSaleProduct[]
 
   @@map("product")
 }
@@ -332,21 +334,49 @@ model Payment {
 
 model SupportTicket {
   id          String       @id @default(uuid())
-  userId      String // Reference to the user creating the ticket
+  userId      String?
+  User          User?      @relation(fields: [userId], references: [id])
   title       String
   description String
   status      TicketStatus // Enum: open, closed, pending, etc.
+  ticketNumber Int?
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
   @@map("support_ticket")
 }
 
+model FlashSale {
+  id         String       @id @default(uuid())
+  name       String
+  startDate  DateTime
+  endDate    DateTime
+  discount   Float        // Discount value for the flash sale (percentage or fixed amount)
+  products   FlashSaleProduct[]
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  @@map("flash_sale")
+}
+
+model FlashSaleProduct {
+  id           String       @id @default(uuid())
+  flashSale    FlashSale    @relation(fields: [flashSaleId], references: [id])
+  flashSaleId  String
+  product      Product      @relation(fields: [productId], references: [id])
+  productId    String
+ 
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  @@map("flash_sale_product")
+}
+
 enum TicketStatus {
   open
   closed
   pending
-  // Add more statuses as needed
+ 
 }
 
 model Promotion {
