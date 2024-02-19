@@ -21,6 +21,7 @@ import { supportTicketsRoutes } from '../modules/supportTicket/supportTicket.rou
 import { productReviewRoutes } from '../modules/product-review/productReview.route';
 import { carouselRoutes } from '../modules/HomepageCarousel/carousel.route';
 import { bannerRoutes } from '../modules/banner/banner.route';
+import { couponRoutes } from '../modules/coupon/coupon.route';
 
 const router = express.Router();
 
@@ -79,7 +80,7 @@ const moduleRoutes = [
     path: '/banner',
     route: bannerRoutes,
   },
-  
+
   {
     path: '/sub-category',
     route: subCategoryRoutes,
@@ -111,6 +112,11 @@ const moduleRoutes = [
   },
 
   {
+    path: '/coupon',
+    route: couponRoutes,
+  },
+
+  {
     path: '/payment',
     route: paymentRoutes,
   },
@@ -118,11 +124,6 @@ const moduleRoutes = [
   {
     path: '/support',
     route: supportTicketsRoutes,
-  },
-
-  {
-    path: '/carousel',
-    route: carouselRoutes,
   },
 ];
 

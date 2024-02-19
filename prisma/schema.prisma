@@ -197,15 +197,6 @@ model Booking {
   @@map("booking")
 }
 
-model CarouselImage {
-  id        String   @id @default(uuid())
-  imageUrls String[] // Array to store multiple image URLs
-  targetId  String // ID of the associated item (e.g., Product, Category, Promotion, etc.)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("carousel_image")
-}
 
 model Blog {
   id         String   @id @default(uuid())
@@ -378,25 +369,21 @@ enum ConditionType {
 
 model Coupon {
   id          String   @id @default(uuid())
+  title       String
   code        String   @unique
   discount    Float // The discount percentage or amount
-  validFrom   DateTime // Start date of the validity period
-  validTo     DateTime // End date of the validity period
-  description String? // Optional description for the coupon
+  discountType DiscountType // Enum: percentage, fixed_amount
+  minPurchase Float? // Minimum purchase amount required to use the coupon
+  maxDiscount Float? // Maximum discount amount
+  startDate   DateTime
+  expireDate     DateTime
+  status      Boolean  @default(true)
+  couponType  CouponType? // Enum: public, private, one_time, etc.
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@map("coupon")
-}
-
-model HomepageCarousel {
-  id        String   @id @default(uuid())
-  imageUrls String[] // Array to store multiple image URLs (optional if needed)
-  files     String[] // Array to store references to the uploaded files
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("homepage_carousel")
 }
 
 enum NotificationType {
@@ -404,6 +391,16 @@ enum NotificationType {
   order
   product
   service
+}
+
+enum CouponType {
+  default
+  first_order
+}
+
+enum DiscountType {
+  percentage
+  fixed_amount
 }
 
 enum PaymentStatus {
