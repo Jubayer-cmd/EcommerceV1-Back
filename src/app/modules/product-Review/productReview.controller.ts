@@ -5,12 +5,11 @@ import sendResponse from '../../../utils/sendResponse';
 import { productReviewService } from './productReview.service';
 
 const insertIntoDB = catchAsync(async (req: Request, res: Response) => {
-  console.log('ki re vai', req.body);
   const result = await productReviewService.insertIntoDB(req.body);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: 'question created successfully',
+    message: 'Review Posted successfully',
     data: result,
   });
 });
@@ -20,7 +19,7 @@ const getAllFromDb = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: 'question fetched successfully',
+    message: 'Review fetched successfully',
     data: result,
   });
 });
@@ -30,7 +29,7 @@ const getUserById = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: 'question fetched successfully',
+    message: 'Review fetched successfully',
     data: result,
   });
 });
@@ -40,7 +39,7 @@ const deleteFromDB = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: 'question deleted successfully',
+    message: 'Review deleted successfully',
     data: result,
   });
 });
@@ -53,7 +52,7 @@ const updateIntoDB = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: 'question updated successfully',
+    message: 'Review updated successfully',
     data: result,
   });
 });

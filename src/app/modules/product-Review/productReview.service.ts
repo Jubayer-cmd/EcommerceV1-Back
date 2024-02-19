@@ -1,10 +1,27 @@
 import { ProductReview } from '@prisma/client';
 import prisma from '../../../utils/prisma';
+import ApiError from '../../../errors/ApiError';
+import httpStatus from 'http-status';
 
 const insertIntoDB = async (data: ProductReview): Promise<ProductReview> => {
+  const existingReview = await prisma.productReview.findFirst({
+    where: {
+      productId: data.productId,
+      userId: data.userId,
+    },
+  });
+
+  if (existingReview) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      'You have already posted a review for this product.',
+    );
+  }
+
   const result = await prisma.productReview.create({
     data,
   });
+
   return result;
 };
 

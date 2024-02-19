@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "product_review" ALTER COLUMN "rating" SET DATA TYPE DOUBLE PRECISION;

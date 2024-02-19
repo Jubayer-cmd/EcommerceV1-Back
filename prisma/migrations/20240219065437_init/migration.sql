@@ -42,6 +42,23 @@ CREATE TABLE "user" (
 );
 
 -- CreateTable
+CREATE TABLE "user_files" (
+    "id" TEXT NOT NULL,
+    "title" TEXT NOT NULL,
+    "url" TEXT NOT NULL,
+    "asset_id" TEXT NOT NULL,
+    "format" TEXT NOT NULL,
+    "width" INTEGER NOT NULL,
+    "height" INTEGER NOT NULL,
+    "bytes" INTEGER NOT NULL,
+    "description" TEXT DEFAULT '',
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "user_files_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "service" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
@@ -60,6 +77,9 @@ CREATE TABLE "category" (
     "description" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "banner" TEXT,
+    "image" TEXT,
+    "isFeatured" BOOLEAN NOT NULL DEFAULT true,
 
     CONSTRAINT "category_pkey" PRIMARY KEY ("id")
 );
@@ -71,6 +91,9 @@ CREATE TABLE "brand" (
     "description" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "banner" TEXT,
+    "image" TEXT,
+    "status" BOOLEAN NOT NULL DEFAULT true,
 
     CONSTRAINT "brand_pkey" PRIMARY KEY ("id")
 );
@@ -83,6 +106,7 @@ CREATE TABLE "sub_category" (
     "categoryId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "status" BOOLEAN NOT NULL DEFAULT true,
 
     CONSTRAINT "sub_category_pkey" PRIMARY KEY ("id")
 );
@@ -93,7 +117,7 @@ CREATE TABLE "product" (
     "name" TEXT NOT NULL,
     "description" TEXT,
     "image" TEXT,
-    "price" DOUBLE PRECISION NOT NULL,
+    "price" DOUBLE PRECISION,
     "brandId" TEXT,
     "subCategoryId" TEXT,
     "stock" TEXT,
@@ -101,8 +125,28 @@ CREATE TABLE "product" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "categoryId" TEXT,
+    "unit" TEXT,
 
     CONSTRAINT "product_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ProductVariation" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "image" TEXT,
+    "size" TEXT,
+    "color" TEXT,
+    "shape" TEXT,
+    "material" TEXT,
+    "stock" TEXT,
+    "weight" DOUBLE PRECISION,
+    "quantity" INTEGER NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "productId" TEXT NOT NULL,
+
+    CONSTRAINT "ProductVariation_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -171,6 +215,17 @@ CREATE TABLE "booking" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "booking_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "carousel_image" (
+    "id" TEXT NOT NULL,
+    "imageUrls" TEXT[],
+    "targetId" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "carousel_image_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -265,12 +320,13 @@ CREATE TABLE "payment" (
 -- CreateTable
 CREATE TABLE "support_ticket" (
     "id" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
+    "userId" TEXT,
     "title" TEXT NOT NULL,
     "description" TEXT NOT NULL,
     "status" "TicketStatus" NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "ticketNumber" INTEGER,
 
     CONSTRAINT "support_ticket_pkey" PRIMARY KEY ("id")
 );
@@ -287,6 +343,7 @@ CREATE TABLE "promotion" (
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "image" TEXT,
 
     CONSTRAINT "promotion_pkey" PRIMARY KEY ("id")
 );
@@ -313,6 +370,28 @@ CREATE TABLE "coupon" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "coupon_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "homepage_carousel" (
+    "id" TEXT NOT NULL,
+    "imageUrls" TEXT[],
+    "files" TEXT[],
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "homepage_carousel_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "analytics" (
+    "id" TEXT NOT NULL,
+    "loginCount" INTEGER,
+    "registerCount" INTEGER,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "analytics_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -346,10 +425,13 @@ ALTER TABLE "sub_category" ADD CONSTRAINT "sub_category_categoryId_fkey" FOREIGN
 ALTER TABLE "product" ADD CONSTRAINT "product_brandId_fkey" FOREIGN KEY ("brandId") REFERENCES "brand"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "product" ADD CONSTRAINT "product_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "category"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "product" ADD CONSTRAINT "product_subCategoryId_fkey" FOREIGN KEY ("subCategoryId") REFERENCES "sub_category"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "product" ADD CONSTRAINT "product_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "category"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "ProductVariation" ADD CONSTRAINT "ProductVariation_productId_fkey" FOREIGN KEY ("productId") REFERENCES "product"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "product_review" ADD CONSTRAINT "product_review_productId_fkey" FOREIGN KEY ("productId") REFERENCES "product"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -409,10 +491,13 @@ ALTER TABLE "order_product" ADD CONSTRAINT "order_product_orderId_fkey" FOREIGN 
 ALTER TABLE "order_product" ADD CONSTRAINT "order_product_productId_fkey" FOREIGN KEY ("productId") REFERENCES "product"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "payment" ADD CONSTRAINT "payment_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "order"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "payment" ADD CONSTRAINT "payment_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "payment" ADD CONSTRAINT "payment_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "order"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "support_ticket" ADD CONSTRAINT "support_ticket_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "promotion_conditions" ADD CONSTRAINT "promotion_conditions_promotionId_fkey" FOREIGN KEY ("promotionId") REFERENCES "promotion"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
