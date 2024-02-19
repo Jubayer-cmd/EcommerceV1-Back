@@ -1,4 +1,4 @@
-import { Prisma, Product, ProductReview } from '@prisma/client';
+import { Prisma, Product, ProductVariation } from '@prisma/client';
 import { IGenericResponse } from '../../../interface/common';
 import { IPaginationOptions } from '../../../interface/pagination';
 import { paginationHelpers } from '../../../utils/paginationHelper';
@@ -11,10 +11,33 @@ import {
 } from './product.constants';
 
 const insertIntoDB = async (data: Product): Promise<Product> => {
-  const result = await prisma.product.create({
-    data,
+  const variationsData = (data as unknown as { variations: ProductVariation[] })
+    .variations; // Extract variations data from the product
+  delete (data as { variations?: unknown }).variations; // Remove variations from the product data
+
+  // Create the product
+  const createdProduct = await prisma.product.create({
+    data: {
+      ...data,
+    },
   });
-  return result;
+
+  // Create variations and associate them with the created product
+  if (variationsData && variationsData.length > 0) {
+    const variations = await Promise.all(
+      variationsData.map(async (variation: ProductVariation) => {
+        const createdVariation = await prisma.productVariation.create({
+          data: {
+            ...variation,
+            productId: createdProduct.id, // Associate variation with the created product
+          },
+        });
+        return createdVariation;
+      }),
+    );
+  }
+
+  return createdProduct;
 };
 
 const getAllProducts = async (
@@ -136,6 +159,7 @@ const getProductById = async (id: string): Promise<Product | null> => {
       id,
     },
     include: {
+      variations: true,
       Category: true,
       subCategory: true,
       brand: true,
