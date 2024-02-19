@@ -20,6 +20,7 @@ import { paymentRoutes } from '../modules/payment/payment.route';
 import { supportTicketsRoutes } from '../modules/supportTicket/supportTicket.route';
 import { productReviewRoutes } from '../modules/product-review/productReview.route';
 import { carouselRoutes } from '../modules/HomepageCarousel/carousel.route';
+import { bannerRoutes } from '../modules/banner/banner.route';
 
 const router = express.Router();
 
@@ -74,6 +75,11 @@ const moduleRoutes = [
     route: brandRoutes,
   },
 
+  {
+    path: '/banner',
+    route: bannerRoutes,
+  },
+  
   {
     path: '/sub-category',
     route: subCategoryRoutes,

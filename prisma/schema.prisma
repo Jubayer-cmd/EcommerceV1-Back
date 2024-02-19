@@ -323,6 +323,19 @@ enum TicketStatus {
   // Add more statuses as needed
 }
 
+model Banner {
+  id        String   @id @default(uuid())
+  title    String
+  image    String
+  type     String
+  status   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("banner")
+
+}
+
 model Promotion {
   id          String                @id @default(uuid())
   name        String
