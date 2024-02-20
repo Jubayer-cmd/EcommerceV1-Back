@@ -226,15 +226,6 @@ model Booking {
   @@map("booking")
 }
 
-model CarouselImage {
-  id        String   @id @default(uuid())
-  imageUrls String[]
-  targetId  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("carousel_image")
-}
 
 model Blog {
   id         String   @id @default(uuid())
@@ -362,19 +353,18 @@ model FlashSale {
   @@map("flash_sale")
 }
 
-model FlashSaleProduct {
-  id           String       @id @default(uuid())
-  flashSale    FlashSale    @relation(fields: [flashSaleId], references: [id])
-  flashSaleId  String
-  product      Product      @relation(fields: [productId], references: [id])
-  productId    String
- 
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
+model Banner {
+  id        String   @id @default(uuid())
+  title    String
+  image    String
+  type     String
+  status   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  @@map("flash_sale_product")
+  @@map("banner")
+
 }
-
 
 model Promotion {
   id          String                @id @default(uuid())
@@ -395,7 +385,7 @@ model Promotion {
 
 model PromotionConditions {
   id            String        @id @default(uuid())
-  conditionType ConditionType
+  conditionType ConditionType // Enum: product, category, etc.
   value         String
   promotionId   String
   promotion     Promotion     @relation(fields: [promotionId], references: [id])
@@ -405,52 +395,21 @@ model PromotionConditions {
 
 model Coupon {
   id          String   @id @default(uuid())
+  title       String
   code        String   @unique
-  discount    Float
-  validFrom   DateTime
-  validTo     DateTime
-  description String?
+  discount    Float // The discount percentage or amount
+  discountType DiscountType // Enum: percentage, fixed_amount
+  minPurchase Float? // Minimum purchase amount required to use the coupon
+  maxDiscount Float? // Maximum discount amount
+  startDate   DateTime
+  expireDate     DateTime
+  status      Boolean  @default(true)
+  couponType  CouponType? // Enum: public, private, one_time, etc.
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@map("coupon")
-}
-
-model HomepageCarousel {
-  id        String   @id @default(uuid())
-  imageUrls String[]
-  files     String[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("homepage_carousel")
-}
-
-model AnalyticsData {
-  id            String   @id @default(uuid())
-  loginCount    Int?
-  registerCount Int?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  @@map("analytics")
-}
-
-enum TicketStatus {
-  open
-  closed
-  pending
-}
-
-enum PromotionType {
-  discount
-  flash_sale
-  seasonal_offer
-}
-
-enum ConditionType {
-  minimum_purchase_amount
-  specific_products
 }
 
 enum NotificationType {
@@ -458,6 +417,16 @@ enum NotificationType {
   order
   product
   service
+}
+
+enum CouponType {
+  default
+  first_order
+}
+
+enum DiscountType {
+  percentage
+  fixed_amount
 }
 
 enum PaymentStatus {
@@ -492,3 +461,35 @@ enum BookingStatus {
   canceled
   completed
 }
+
+enum TicketStatus {
+  pending
+  in_progress
+  resolved
+  closed
+}
+
+enum PromotionType {
+  discount
+  flash_sale
+  seasonal_offer
+}
+
+enum ConditionType {
+  minimum_purchase_amount
+  specific_products
+}
+
+enum FlashSaleStatus {
+  pending
+  active
+  expired
+}
+
+enum FlashSaleProduct {
+  pending
+  active
+  expired
+}
+
+

@@ -20,7 +20,8 @@ import { paymentRoutes } from '../modules/payment/payment.route';
 import { supportTicketsRoutes } from '../modules/supportTicket/supportTicket.route';
 
 import { carouselRoutes } from '../modules/HomepageCarousel/carousel.route';
-import { productReviewRoutes } from '../modules/product-Review/productReview.route';
+import { bannerRoutes } from '../modules/banner/banner.route';
+import { couponRoutes } from '../modules/coupon/coupon.route';
 
 const router = express.Router();
 
@@ -76,7 +77,12 @@ const moduleRoutes = [
   },
 
   {
-    path: "/sub-categories",
+    path: '/banner',
+    route: bannerRoutes,
+  },
+
+  {
+    path: '/sub-category',
     route: subCategoryRoutes,
   },
 
@@ -106,18 +112,18 @@ const moduleRoutes = [
   },
 
   {
-    path: "/payment",
+    path: '/coupon',
+    route: couponRoutes,
+  },
+
+  {
+    path: '/payment',
     route: paymentRoutes,
   },
 
   {
     path: "/support",
     route: supportTicketsRoutes,
-  },
-
-  {
-    path: "/carousel",
-    route: carouselRoutes,
   },
 ];
 
