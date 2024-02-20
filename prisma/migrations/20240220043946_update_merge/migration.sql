@@ -1,14 +1,11 @@
 -- CreateEnum
-CREATE TYPE "TicketStatus" AS ENUM ('open', 'closed', 'pending');
-
--- CreateEnum
-CREATE TYPE "PromotionType" AS ENUM ('discount', 'flash_sale', 'seasonal_offer');
-
--- CreateEnum
-CREATE TYPE "ConditionType" AS ENUM ('minimum_purchase_amount', 'specific_products');
-
--- CreateEnum
 CREATE TYPE "NotificationType" AS ENUM ('promotional', 'order', 'product', 'service');
+
+-- CreateEnum
+CREATE TYPE "CouponType" AS ENUM ('default', 'first_order');
+
+-- CreateEnum
+CREATE TYPE "DiscountType" AS ENUM ('percentage', 'fixed_amount');
 
 -- CreateEnum
 CREATE TYPE "PaymentStatus" AS ENUM ('pending', 'succeeded', 'failed', 'refunded');
@@ -24,6 +21,21 @@ CREATE TYPE "OrderStatus" AS ENUM ('pending', 'confirmed', 'shipped', 'delivered
 
 -- CreateEnum
 CREATE TYPE "BookingStatus" AS ENUM ('pending', 'confirmed', 'canceled', 'completed');
+
+-- CreateEnum
+CREATE TYPE "TicketStatus" AS ENUM ('pending', 'in_progress', 'resolved', 'closed');
+
+-- CreateEnum
+CREATE TYPE "PromotionType" AS ENUM ('discount', 'flash_sale', 'seasonal_offer');
+
+-- CreateEnum
+CREATE TYPE "ConditionType" AS ENUM ('minimum_purchase_amount', 'specific_products');
+
+-- CreateEnum
+CREATE TYPE "FlashSaleStatus" AS ENUM ('pending', 'active', 'expired');
+
+-- CreateEnum
+CREATE TYPE "FlashSaleProduct" AS ENUM ('pending', 'active', 'expired');
 
 -- CreateTable
 CREATE TABLE "user" (
@@ -126,6 +138,7 @@ CREATE TABLE "product" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "categoryId" TEXT,
     "unit" TEXT,
+    "flashSaleProduct" "FlashSaleProduct"[],
 
     CONSTRAINT "product_pkey" PRIMARY KEY ("id")
 );
@@ -152,7 +165,7 @@ CREATE TABLE "ProductVariation" (
 -- CreateTable
 CREATE TABLE "product_review" (
     "id" TEXT NOT NULL,
-    "rating" INTEGER NOT NULL,
+    "rating" DOUBLE PRECISION NOT NULL,
     "content" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -178,7 +191,9 @@ CREATE TABLE "product_question" (
 -- CreateTable
 CREATE TABLE "notification" (
     "id" TEXT NOT NULL,
+    "image" TEXT,
     "title" TEXT NOT NULL,
+    "status" BOOLEAN NOT NULL DEFAULT true,
     "content" TEXT NOT NULL,
     "notificationType" "NotificationType" NOT NULL,
     "isRead" BOOLEAN NOT NULL DEFAULT false,
@@ -215,17 +230,6 @@ CREATE TABLE "booking" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "booking_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "carousel_image" (
-    "id" TEXT NOT NULL,
-    "imageUrls" TEXT[],
-    "targetId" TEXT NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "carousel_image_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -332,6 +336,33 @@ CREATE TABLE "support_ticket" (
 );
 
 -- CreateTable
+CREATE TABLE "flash_sale" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "startDate" TIMESTAMP(3) NOT NULL,
+    "endDate" TIMESTAMP(3) NOT NULL,
+    "discount" DOUBLE PRECISION NOT NULL,
+    "products" "FlashSaleProduct"[],
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "flash_sale_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "banner" (
+    "id" TEXT NOT NULL,
+    "title" TEXT NOT NULL,
+    "image" TEXT NOT NULL,
+    "type" TEXT NOT NULL,
+    "status" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "banner_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "promotion" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
@@ -361,37 +392,20 @@ CREATE TABLE "promotion_conditions" (
 -- CreateTable
 CREATE TABLE "coupon" (
     "id" TEXT NOT NULL,
+    "title" TEXT NOT NULL,
     "code" TEXT NOT NULL,
     "discount" DOUBLE PRECISION NOT NULL,
-    "validFrom" TIMESTAMP(3) NOT NULL,
-    "validTo" TIMESTAMP(3) NOT NULL,
-    "description" TEXT,
+    "discountType" "DiscountType" NOT NULL,
+    "minPurchase" DOUBLE PRECISION,
+    "maxDiscount" DOUBLE PRECISION,
+    "startDate" TIMESTAMP(3) NOT NULL,
+    "expireDate" TIMESTAMP(3) NOT NULL,
+    "status" BOOLEAN NOT NULL DEFAULT true,
+    "couponType" "CouponType",
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "coupon_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "homepage_carousel" (
-    "id" TEXT NOT NULL,
-    "imageUrls" TEXT[],
-    "files" TEXT[],
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "homepage_carousel_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "analytics" (
-    "id" TEXT NOT NULL,
-    "loginCount" INTEGER,
-    "registerCount" INTEGER,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "analytics_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
