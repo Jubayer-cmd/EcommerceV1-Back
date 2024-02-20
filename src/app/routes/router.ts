@@ -23,6 +23,8 @@ import { carouselRoutes } from '../modules/HomepageCarousel/carousel.route';
 import { bannerRoutes } from '../modules/banner/banner.route';
 import { couponRoutes } from '../modules/coupon/coupon.route';
 import { productReviewRoutes } from '../modules/product-Review/productReview.route';
+import { FlashSaleProductRoutes } from '../flashSaleProduct/flashsaleProduct.route';
+import { flashSaleRoutes } from '../modules/FlashSale/flashsale.route';
 
 const router = express.Router();
 
@@ -78,12 +80,12 @@ const moduleRoutes = [
   },
 
   {
-    path: '/banner',
+    path: "/banner",
     route: bannerRoutes,
   },
 
   {
-    path: '/sub-category',
+    path: "/sub-category",
     route: subCategoryRoutes,
   },
 
@@ -113,18 +115,28 @@ const moduleRoutes = [
   },
 
   {
-    path: '/coupon',
+    path: "/coupon",
     route: couponRoutes,
   },
 
   {
-    path: '/payment',
+    path: "/payment",
     route: paymentRoutes,
   },
 
   {
     path: "/support",
     route: supportTicketsRoutes,
+  },
+
+  {
+    path: "/flash-sale",
+    route: flashSaleRoutes,
+  },
+
+  {
+    path: "/flash-sale-products",
+    route: FlashSaleProductRoutes,
   },
 ];
 

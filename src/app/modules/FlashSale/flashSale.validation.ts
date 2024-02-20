@@ -8,13 +8,14 @@ const createFlashSale = z.object({
 
     startDate: z.string({
       required_error: "startDate  is required",
+      
     }),
 
     endDate: z.string({
       required_error: "end Date  is required",
     }),
 
-    discount: z.string({
+    discount: z.number({
       required_error: "discount is required",
     }),
   }),

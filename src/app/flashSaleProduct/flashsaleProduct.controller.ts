@@ -59,10 +59,22 @@ const updateIntoDB = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+
+const expiredFlashSale = catchAsync(async (req: Request, res: Response) => {
+  const result = await FlashSaleProductService.expiredFlashSale(req.params.id);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Flash Sale Product expired and archived successfully",
+    data: result,
+  });
+});
+
 export const FlashSaleProductController = {
   insertIntoDB,
   getAllFromDb,
   getUserById,
   updateIntoDB,
   deleteFromDB,
+  expiredFlashSale
 };

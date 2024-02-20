@@ -1,5 +1,6 @@
-import { FlashSaleProduct } from "@prisma/client";
+import { FlashSaleProduct, FlashSaleProductStatus } from "@prisma/client";
 import prisma from "../../utils/prisma";
+import ApiError from "../../errors/ApiError";
 
 
 const insertIntoDB = async (
@@ -59,10 +60,49 @@ const deleteFromDB = async (id: string): Promise<FlashSaleProduct> => {
   return result;
 };
 
+const expiredFlashSale = async (
+  id: string
+): Promise<FlashSaleProduct | null> => {
+  const result = await prisma.flashSaleProduct.findUnique({
+    where: {
+      id,
+    },
+
+    include: { flashSale: true },
+  });
+  
+
+  if(!result){
+    throw new ApiError(400,"there is no flash sales")
+  }
+
+  const flashSaleEndDate = result?.flashSale?.endDate;
+
+   if (flashSaleEndDate && new Date(flashSaleEndDate) <= new Date()) {
+     
+     const expiredUpdate = await prisma.flashSaleProduct.update({
+       where: {
+         id: result.id,
+       },
+       data: {
+         flasSaleProductSatus: {
+           set: FlashSaleProductStatus.expired,
+         },
+       },
+     });
+
+     return expiredUpdate;
+   }
+
+  return result;
+};
+
 export const FlashSaleProductService = {
   insertIntoDB,
   getAllFromDb,
- getFlashSaleProductById,
+  getFlashSaleProductById,
   updateIntoDB,
   deleteFromDB,
+
+  expiredFlashSale,
 };

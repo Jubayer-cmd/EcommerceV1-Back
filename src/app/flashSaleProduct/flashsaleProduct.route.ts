@@ -21,4 +21,11 @@ router.patch(
   FlashSaleProductController.updateIntoDB
 );
 
+
+router.patch(
+  "/:id",
+  
+  FlashSaleProductController.expiredFlashSale
+);
+
 export const FlashSaleProductRoutes = router;
