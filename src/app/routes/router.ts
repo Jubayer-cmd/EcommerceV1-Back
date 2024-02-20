@@ -22,6 +22,7 @@ import { supportTicketsRoutes } from '../modules/supportTicket/supportTicket.rou
 import { carouselRoutes } from '../modules/HomepageCarousel/carousel.route';
 import { bannerRoutes } from '../modules/banner/banner.route';
 import { couponRoutes } from '../modules/coupon/coupon.route';
+import { productReviewRoutes } from '../modules/product-Review/productReview.route';
 
 const router = express.Router();
 
