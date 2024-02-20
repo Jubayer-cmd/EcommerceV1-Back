@@ -354,7 +354,7 @@ model FlashSale {
   name       String
   startDate  DateTime
   endDate    DateTime
-  discount   Float        // Discount value for the flash sale (percentage or fixed amount)
+  discount   Float       
   products   FlashSaleProduct[]
   createdAt  DateTime     @default(now())
   updatedAt  DateTime     @updatedAt
