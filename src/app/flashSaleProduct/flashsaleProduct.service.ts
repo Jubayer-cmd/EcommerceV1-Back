@@ -78,7 +78,7 @@ const expiredFlashSale = async (
 
   const flashSaleEndDate = result?.flashSale?.endDate;
 
-   if (flashSaleEndDate && new Date(flashSaleEndDate) <= new Date()) {
+   if (flashSaleEndDate && new Date(flashSaleEndDate) < new Date()) {
      
      const expiredUpdate = await prisma.flashSaleProduct.update({
        where: {
