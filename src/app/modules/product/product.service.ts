@@ -19,8 +19,12 @@ const insertIntoDB = async (data: Product): Promise<Product> => {
   const createdProduct = await prisma.product.create({
     data: {
       ...data,
+
     },
-  });
+ });
+
+
+ 
 
   // Create variations and associate them with the created product
   if (variationsData && variationsData.length > 0) {
@@ -35,6 +39,34 @@ const insertIntoDB = async (data: Product): Promise<Product> => {
         return createdVariation;
       }),
     );
+  }
+
+
+  const existingAnalyticsData = await prisma.analyticsData.findFirst({
+    where: {
+      totalProduct: 1,
+    },
+  });
+
+  if (existingAnalyticsData) {
+    // If there is, increment the totalProduct count
+    await prisma.analyticsData.update({
+      where: {
+        id: existingAnalyticsData?.id,
+      },
+      data: {
+        totalProduct: {
+          increment: 1,
+        },
+      },
+    });
+  } else {
+    // If not, create a new AnalyticsData with totalProduct as 1
+    await prisma.analyticsData.create({
+      data: {
+        totalProduct: 1,
+      },
+    });
   }
 
   return createdProduct;

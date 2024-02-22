@@ -427,6 +427,23 @@ model Coupon {
   @@map("coupon")
 }
 
+
+model AnalyticsData {
+  id            String   @id @default(uuid())
+  loginCount    Int?
+  registerCount Int?
+  orderProductCount Int?
+  productReviewCount Int?
+  totalSellMonthly   Float?
+  totalSellWeekly    Float?
+  totalSellYearly    Float?
+  totalProduct       Int?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("analytics")
+}
+
 enum NotificationType {
   promotional
   order
