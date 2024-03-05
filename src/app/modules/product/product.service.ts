@@ -10,35 +10,43 @@ import {
   productSearchableFields,
 } from './product.constants';
 
+// const insertIntoDB = async (data: Product): Promise<Product> => {
+//   const variationsData = (data as unknown as { variations: ProductVariation[] })
+//     .variations; // Extract variations data from the product
+//   delete (data as { variations?: unknown }).variations; // Remove variations from the product data
+
+//   // Create the product
+//   const createdProduct = await prisma.product.create({
+//     data: {
+//       ...data,
+//     },
+//   });
+
+//   // Create variations and associate them with the created product
+//   if (variationsData && variationsData.length > 0) {
+//     const variations = await Promise.all(
+//       variationsData.map(async (variation: ProductVariation) => {
+//         const createdVariation = await prisma.productVariation.create({
+//           data: {
+//             ...variation,
+//             productId: createdProduct.id, // Associate variation with the created product
+//           },
+//         });
+//         return createdVariation;
+//       }),
+//     );
+//   }
+
+//   return createdProduct;
+// };
+
 const insertIntoDB = async (data: Product): Promise<Product> => {
-  const variationsData = (data as unknown as { variations: ProductVariation[] })
-    .variations; // Extract variations data from the product
-  delete (data as { variations?: unknown }).variations; // Remove variations from the product data
-
-  // Create the product
-  const createdProduct = await prisma.product.create({
-    data: {
-      ...data,
-    },
+  const result = await prisma.product.create({
+    data,
   });
-
-  // Create variations and associate them with the created product
-  if (variationsData && variationsData.length > 0) {
-    const variations = await Promise.all(
-      variationsData.map(async (variation: ProductVariation) => {
-        const createdVariation = await prisma.productVariation.create({
-          data: {
-            ...variation,
-            productId: createdProduct.id, // Associate variation with the created product
-          },
-        });
-        return createdVariation;
-      }),
-    );
-  }
-
-  return createdProduct;
+  return result;
 };
+
 
 const getAllProducts = async (
   filters: IProductFilterRequest,
@@ -159,7 +167,7 @@ const getProductById = async (id: string): Promise<Product | null> => {
       id,
     },
     include: {
-      variations: true,
+      // variations: true,
       Category: true,
       subCategory: true,
       brand: true,

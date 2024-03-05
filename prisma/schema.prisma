@@ -111,21 +111,21 @@ model Product {
   description   String?
   image         String?
   price         Float?
-  brandId       String?
-  subCategoryId String?
-  stock         String?
+  brandId       String
+  subCategoryId String
+  stock         String
   quantity      Int
   createdAt     DateTime           @default(now())
   updatedAt     DateTime           @updatedAt
-  categoryId    String?
-  unit          String?
-  variations    ProductVariation[]
+  categoryId    String
+  unit          String
+  variations    String
   cartItems     CartItem[]
   Notification  Notification[]
   OrderProduct  OrderProduct[]
-  brand         Brand?             @relation(fields: [brandId], references: [id])
-  Category      Category?          @relation(fields: [categoryId], references: [id])
-  subCategory   SubCategory?       @relation(fields: [subCategoryId], references: [id])
+  brand         Brand            @relation(fields: [brandId], references: [id])
+  Category      Category          @relation(fields: [categoryId], references: [id])
+  subCategory   SubCategory       @relation(fields: [subCategoryId], references: [id])
   questions     ProductQuestion[]
   reviews       ProductReview[]
   wishlists     Wishlist[]         @relation("ProductToWishlist")
@@ -146,8 +146,8 @@ model ProductVariation {
   quantity  Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  productId String
-  product   Product  @relation(fields: [productId], references: [id])
+  // productId String?
+  // product   Product?  @relation(fields: [productId], references: [id])
 }
 
 model ProductReview {
