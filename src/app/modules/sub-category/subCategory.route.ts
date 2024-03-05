@@ -6,7 +6,7 @@ import { SubCategoryValidation } from './subCategory.validation';
 const router = express.Router();
 
 router.post(
-  '/create-subCategory',
+  '/create-subcategory',
   validateRequest(SubCategoryValidation.createSubCategory),
   subCategoryController.insertIntoDB,
 );

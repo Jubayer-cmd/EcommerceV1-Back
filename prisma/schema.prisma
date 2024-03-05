@@ -412,6 +412,8 @@ model Coupon {
   @@map("coupon")
 }
 
+
+
 enum NotificationType {
   promotional
   order
@@ -439,6 +441,7 @@ enum PaymentStatus {
 enum PaymentMethod {
   online
   COD
+  POS
 }
 
 enum Role {
