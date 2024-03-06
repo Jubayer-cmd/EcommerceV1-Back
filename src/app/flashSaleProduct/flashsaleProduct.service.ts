@@ -58,6 +58,7 @@ const deleteFromDB = async (id: string): Promise<FlashSaleProduct> => {
     },
   });
   return result;
+  
 };
 
 const expiredFlashSale = async (
