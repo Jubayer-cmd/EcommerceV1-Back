@@ -10,7 +10,7 @@ import { productService } from './product.service';
 const insertIntoDB = catchAsync(async (req: Request, res: Response) => {
   const price = parseInt(req.body.price, 10); // Assuming base 10 for decimal numbers
   const quantity = parseInt(req.body.quantity, 10); // Assuming base 10 for decimal numbers
-  console.log(price, quantity);
+ 
   const result = await productService.insertIntoDB({
     ...req.body,
     price,
