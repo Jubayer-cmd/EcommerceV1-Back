@@ -86,6 +86,8 @@ const getAllProducts = async (
   const result = await prisma.product.findMany({
     include: {
       Category: true,
+      brand:true,
+      subCategory:true
     },
     where: whereConditions,
     skip,
