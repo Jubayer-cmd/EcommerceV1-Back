@@ -119,7 +119,7 @@ model Product {
   updatedAt     DateTime           @updatedAt
   categoryId    String
   unit          String
-  variations    String
+   variations    ProductVariation[]
   cartItems     CartItem[]
   Notification  Notification[]
   OrderProduct  OrderProduct[]
@@ -146,8 +146,8 @@ model ProductVariation {
   quantity  Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  // productId String?
-  // product   Product?  @relation(fields: [productId], references: [id])
+  productId String?
+  product   Product?  @relation(fields: [productId], references: [id])
 }
 
 model ProductReview {
