@@ -3,7 +3,6 @@ import httpStatus from "http-status";
 import catchAsync from "../../../utils/catchAsync";
 import pick from "../../../utils/pick";
 import sendResponse from "../../../utils/sendResponse";
-import { file_filter_keys } from "./file.constant";
 import { FileServices } from "./file.service";
 
 // fileUpload
@@ -19,9 +18,9 @@ const fileUpload = catchAsync(async (req: Request, res: Response) => {
 
 // All files
 const allFiles = catchAsync(async (req: Request, res: Response) => {
-  const filers = pick(req.query, file_filter_keys);
+  const pagination = pick(req.query, ["page", "limit", "sortBy", "sortOrder"]);
 
-  const result = await FileServices.get_all_files(filers);
+  const result = await FileServices.get_all_files(pagination);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
