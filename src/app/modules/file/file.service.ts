@@ -1,10 +1,11 @@
-// import { IUserLogin } from "../user/user.interface";
 import { Prisma, UserFile } from "@prisma/client";
 import { Request } from "express";
 import httpStatus from "http-status";
 import ApiError from "../../../errors/ApiError";
+import { pagination_map } from "../../../helpers/pagination";
 import { IGenericResponse } from "../../../interface/common";
 import { IUploadFile } from "../../../interface/file";
+import { IPaginationOptions } from "../../../interface/pagination";
 import prisma from "../../../utils/prisma";
 import { FileUploadHelper } from "../../middleware/fileUploadHelper";
 import { GetWhereConditions, IFileFilter } from "./file.condition";
@@ -32,15 +33,40 @@ const file_upload = async (req: Request): Promise<UserFile | null> => {
   throw new ApiError(httpStatus.BAD_REQUEST, "Image not uploaded ");
 };
 
+// * get_all_files
+
 const get_all_files = async (
-  filers: IFileFilter
+  pagination_data: Partial<IPaginationOptions>
 ): Promise<IGenericResponse<UserFile[]> | null> => {
-  const where: Prisma.UserFileWhereInput = GetWhereConditions(filers);
-  const files = await prisma.userFile.findMany({
-    where,
+  //
+  const { page, size, skip, sortObject } = pagination_map(
+    pagination_data,
+    "created_at"
+  );
+
+  // and conditions (for search and filter)
+  const whereConditions: Prisma.UserFileWhereInput = GetWhereConditions(
+    pagination_data as IFileFilter
+  );
+
+  //
+  const all_file = await prisma.userFile.findMany({
+    where: whereConditions,
+    skip,
+    take: size,
+    orderBy: sortObject,
   });
+  const total = await prisma.userFile.count({ where: whereConditions });
+  const totalPage = Math.ceil(total / size);
+
   return {
-    data: files,
+    meta: {
+      page: Number(page),
+      limit: Number(size),
+      total: total,
+      totalPages: totalPage,
+    },
+    data: all_file,
   };
 };
 
