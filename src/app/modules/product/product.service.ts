@@ -40,12 +40,7 @@ const insertIntoDB = async (data: Product): Promise<Product> => {
   return createdProduct;
 };
 
-// const insertIntoDB = async (data: Product): Promise<Product> => {
-//   const result = await prisma.product.create({
-//     data,
-//   });
-//   return result;
-// };
+
 
 
 const getAllProducts = async (

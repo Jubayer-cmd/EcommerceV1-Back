@@ -119,7 +119,7 @@ model Product {
   updatedAt     DateTime           @updatedAt
   categoryId    String
   unit          String
-   variations    ProductVariation[]
+  variations    ProductVariation[]
   cartItems     CartItem[]
   Notification  Notification[]
   OrderProduct  OrderProduct[]
