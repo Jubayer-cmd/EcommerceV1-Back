@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "ProductVariation" ALTER COLUMN "weight" SET DATA TYPE TEXT,
+ALTER COLUMN "quantity" DROP NOT NULL,
+ALTER COLUMN "quantity" SET DATA TYPE TEXT;

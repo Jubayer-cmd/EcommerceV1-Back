@@ -7,7 +7,12 @@
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
+  
     "postinstall": "prisma generate"
+  },
+
+  "prisma": {
+    "seed": "ts-node --transpile-only prisma/seed/seed.ts"
   },
   "keywords": [],
   "author": "jubayer-cmd",

@@ -142,8 +142,8 @@ model ProductVariation {
   shape     String?
   material  String?
   stock     String?
-  weight    Float?
-  quantity  Int
+  weight    String?
+  quantity  String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   productId String?
