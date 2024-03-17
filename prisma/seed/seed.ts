@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 const products=require("./Data/products")
-
+const brands=require("./Data/brand")
 
 const prisma = new PrismaClient();
 
@@ -21,6 +21,16 @@ async function main() {
             data: createData,
         });
     }
+
+    await Promise.all(
+        brands.map(async (brand:any) =>
+          prisma.user.upsert({
+            where : { id: brand.id },
+            update: {},
+            create: brand,
+          })
+        )
+      );
 }
 
 main()
