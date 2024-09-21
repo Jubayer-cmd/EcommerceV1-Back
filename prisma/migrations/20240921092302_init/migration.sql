@@ -11,6 +11,12 @@ CREATE TYPE "ConditionType" AS ENUM ('minimum_purchase_amount', 'specific_produc
 CREATE TYPE "NotificationType" AS ENUM ('promotional', 'order', 'product', 'service');
 
 -- CreateEnum
+CREATE TYPE "CouponType" AS ENUM ('default', 'first_order');
+
+-- CreateEnum
+CREATE TYPE "DiscountType" AS ENUM ('percentage', 'fixed_amount');
+
+-- CreateEnum
 CREATE TYPE "PaymentStatus" AS ENUM ('pending', 'succeeded', 'failed', 'refunded');
 
 -- CreateEnum
@@ -39,6 +45,23 @@ CREATE TABLE "user" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "user_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "user_files" (
+    "id" TEXT NOT NULL,
+    "title" TEXT NOT NULL,
+    "url" TEXT NOT NULL,
+    "asset_id" TEXT NOT NULL,
+    "format" TEXT NOT NULL,
+    "width" INTEGER NOT NULL,
+    "height" INTEGER NOT NULL,
+    "bytes" INTEGER NOT NULL,
+    "description" TEXT DEFAULT '',
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "user_files_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -276,9 +299,23 @@ CREATE TABLE "support_ticket" (
 );
 
 -- CreateTable
+CREATE TABLE "banner" (
+    "id" TEXT NOT NULL,
+    "title" TEXT NOT NULL,
+    "image" TEXT NOT NULL,
+    "type" TEXT NOT NULL,
+    "status" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "banner_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "promotion" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
+    "image" TEXT,
     "description" TEXT,
     "type" "PromotionType" NOT NULL,
     "startDate" TIMESTAMP(3) NOT NULL,
@@ -304,11 +341,16 @@ CREATE TABLE "promotion_conditions" (
 -- CreateTable
 CREATE TABLE "coupon" (
     "id" TEXT NOT NULL,
+    "title" TEXT NOT NULL,
     "code" TEXT NOT NULL,
     "discount" DOUBLE PRECISION NOT NULL,
-    "validFrom" TIMESTAMP(3) NOT NULL,
-    "validTo" TIMESTAMP(3) NOT NULL,
-    "description" TEXT,
+    "discountType" "DiscountType" NOT NULL,
+    "minPurchase" DOUBLE PRECISION,
+    "maxDiscount" DOUBLE PRECISION,
+    "startDate" TIMESTAMP(3) NOT NULL,
+    "expireDate" TIMESTAMP(3) NOT NULL,
+    "status" BOOLEAN NOT NULL DEFAULT true,
+    "couponType" "CouponType",
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
