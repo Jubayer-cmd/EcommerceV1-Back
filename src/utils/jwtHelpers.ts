@@ -24,10 +24,11 @@ const createResetToken = (
 };
 const verifyToken = (token: string, secret: Secret): JwtPayload => {
   try {
-    const isVerified = verify(token, secret);
-    return isVerified as any;
+    const isVerified = verify(token, secret) as JwtPayload;
+    return isVerified;
   } catch (error) {
-    return new ApiError(httpStatus.UNAUTHORIZED, 'Invalid token');
+    console.log(error);
+    throw new ApiError(httpStatus.UNAUTHORIZED, 'Invalid token');
   }
 };
 

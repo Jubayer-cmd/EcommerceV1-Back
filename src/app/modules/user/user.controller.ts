@@ -67,8 +67,8 @@ const updateIntoDB = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getProfile = catchAsync(async (req: Request, res: Response) => {
-  const { userId } = req.user!;
-  const result = await userService.getSingleUser(userId);
+  const { id } = req.user!;
+  const result = await userService.getSingleUser(id);
 
   sendResponse<Partial<User>>(res, {
     statusCode: 200,

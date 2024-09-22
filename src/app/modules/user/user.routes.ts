@@ -6,8 +6,12 @@ import { compressAndResizeSingleImage } from '../../middleware/upload-file';
 
 const router = express.Router();
 
-router.get('/', userController.getAllUser);
-router.get('/profile', userController.getProfile);
+router.get('/', auth(ENUM_USER_ROLE.ADMIN), userController.getAllUser);
+router.get(
+  '/profile',
+  auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.USER),
+  userController.getProfile,
+);
 router.get('/:id', userController.getUserById);
 router.delete('/:id', userController.deleteFromDB);
 router.patch('/:id', compressAndResizeSingleImage, userController.updateIntoDB);

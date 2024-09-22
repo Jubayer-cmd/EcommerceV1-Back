@@ -5,6 +5,8 @@ import { paginationHelpers } from '../../../utils/paginationHelper';
 import prisma from '../../../utils/prisma';
 import { IUserFilterRequest, userSearchableFields } from './user.interface';
 import { deleteImage } from '../../middleware/upload-file';
+import ApiError from '../../../errors/ApiError';
+import httpStatus from 'http-status';
 
 const getAllUser = async (
   filters: IUserFilterRequest,
@@ -76,6 +78,10 @@ const getSingleUser = async (
       id: id,
     },
   });
+  if (!user) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'User not found');
+  }
+
   const { password, ...rest } = user || {};
   return rest;
 };
