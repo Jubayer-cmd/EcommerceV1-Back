@@ -1,7 +1,18 @@
 import { SubCategory } from '@prisma/client';
 import prisma from '../../../utils/prisma';
+import ApiError from '../../../errors/ApiError';
 
 const insertIntoDB = async (data: SubCategory): Promise<SubCategory> => {
+  const existingSubCategory = await prisma.subCategory.findFirst({
+    where: {
+      name: data.name,
+    },
+  });
+
+  if (existingSubCategory) {
+    throw new ApiError(400, 'SubCategory with this name already exists');
+  }
+
   const result = await prisma.subCategory.create({
     data,
   });
@@ -13,12 +24,15 @@ const getAllFromDb = async (): Promise<SubCategory[]> => {
   return result;
 };
 
-const getsubCategoryById = async (id: string): Promise<SubCategory | null> => {
+const getSubCategoryById = async (id: string): Promise<SubCategory | null> => {
   const result = await prisma.subCategory.findUnique({
     where: {
       id,
     },
   });
+  if (!result) {
+    throw new ApiError(400, 'SubCategory not found with this id');
+  }
   return result;
 };
 
@@ -47,7 +61,7 @@ const deleteFromDB = async (id: string): Promise<SubCategory> => {
 export const subCategoryService = {
   insertIntoDB,
   getAllFromDb,
-  getsubCategoryById,
+  getSubCategoryById,
   updateIntoDB,
   deleteFromDB,
 };

@@ -12,16 +12,14 @@ import { authRoutes } from '../modules/authentication/auth.route';
 import { brandRoutes } from '../modules/brand/brand.route';
 import { subCategoryRoutes } from '../modules/sub-category/subCategory.route';
 import { questionRoutes } from '../modules/product-question/proQues.route';
-
 import { cartRoutes } from '../modules/cart/cart.route';
 import { wishlistRoutes } from '../modules/wishlist/wishlist.route';
 import { notificationRoutes } from '../modules/notifications/notification.route';
 import { paymentRoutes } from '../modules/payment/payment.route';
 import { supportTicketsRoutes } from '../modules/supportTicket/supportTicket.route';
-import { productReviewRoutes } from '../modules/product-review/productReview.route';
-import { carouselRoutes } from '../modules/HomepageCarousel/carousel.route';
 import { bannerRoutes } from '../modules/banner/banner.route';
 import { couponRoutes } from '../modules/coupon/coupon.route';
+import { productReviewRoutes } from '../modules/product-Review/productReview.route';
 
 const router = express.Router();
 

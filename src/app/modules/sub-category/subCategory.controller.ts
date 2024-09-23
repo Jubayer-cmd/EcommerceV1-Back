@@ -1,16 +1,16 @@
-import { Request, Response } from "express";
-import httpStatus from "http-status";
-import catchAsync from "../../../utils/catchAsync";
-import sendResponse from "../../../utils/sendResponse";
-import { subCategoryService } from "./subCategory.service";
+import { Request, Response } from 'express';
+import httpStatus from 'http-status';
+import catchAsync from '../../../utils/catchAsync';
+import sendResponse from '../../../utils/sendResponse';
+import { subCategoryService } from './subCategory.service';
 
 const insertIntoDB = catchAsync(async (req: Request, res: Response) => {
-  console.log("ki re vai", req.body);
+  console.log('ki re vai', req.body);
   const result = await subCategoryService.insertIntoDB(req.body);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: "subCategory created successfully",
+    message: 'subCategory created successfully',
     data: result,
   });
 });
@@ -20,17 +20,17 @@ const getAllFromDb = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: "subCategory fetched successfully",
+    message: 'subCategory fetched successfully',
     data: result,
   });
 });
 
-const getUserById = catchAsync(async (req: Request, res: Response) => {
-  const result = await subCategoryService.getsubCategoryById(req.params.id);
+const getSubCategoryById = catchAsync(async (req: Request, res: Response) => {
+  const result = await subCategoryService.getSubCategoryById(req.params.id);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: "subCategory fetched successfully",
+    message: 'subCategory fetched successfully',
     data: result,
   });
 });
@@ -40,7 +40,7 @@ const deleteFromDB = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: "subCategory deleted successfully",
+    message: 'subCategory deleted successfully',
     data: result,
   });
 });
@@ -50,7 +50,7 @@ const updateIntoDB = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: "subCategory updated successfully",
+    message: 'subCategory updated successfully',
     data: result,
   });
 });
@@ -58,7 +58,7 @@ const updateIntoDB = catchAsync(async (req: Request, res: Response) => {
 export const subCategoryController = {
   insertIntoDB,
   getAllFromDb,
-  getUserById,
+  getSubCategoryById,
   updateIntoDB,
   deleteFromDB,
 };

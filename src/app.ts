@@ -6,6 +6,7 @@ import httpStatus from 'http-status';
 import globalErrorHandler from './app/middleware/globalErrorHandler';
 import router from './app/routes/router';
 import morgan from 'morgan';
+import fileUpload from 'express-fileupload';
 const app: Application = express();
 
 //  apply to all requests
@@ -33,6 +34,10 @@ app.use(express.urlencoded({ extended: true }));
 app.use(limiter);
 
 app.use(morgan('dev'));
+
+app.use(fileUpload({
+  limits: { fileSize: 50 * 1024 * 1024 },
+}));
 //routes
 app.use('/api/v1', router);
 

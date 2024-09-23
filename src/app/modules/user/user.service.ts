@@ -67,23 +67,12 @@ const getUserById = async (id: string): Promise<User | null> => {
       id,
     },
   });
-  return result;
-};
 
-const getSingleUser = async (
-  id: string,
-): Promise<Omit<User, 'password'> | {}> => {
-  const user = await prisma.user.findUnique({
-    where: {
-      id: id,
-    },
-  });
-  if (!user) {
+  if (!result) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'User not found');
   }
 
-  const { password, ...rest } = user || {};
-  return rest;
+  return result;
 };
 
 const updateIntoDB = async (
@@ -138,6 +127,5 @@ export const userService = {
   getUserById,
   updateIntoDB,
   deleteFromDB,
-  getSingleUser,
   updateRoleToAdmin,
 };

@@ -1,4 +1,6 @@
 export type IUploadFile = {
+  data: any;
+  name: any;
   fieldname: string;
   originalname: string;
   encoding: string;

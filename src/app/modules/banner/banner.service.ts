@@ -1,13 +1,13 @@
-
 import { Banner } from '@prisma/client';
 import prisma from '../../../utils/prisma';
+import ApiError from '../../../errors/ApiError';
 
 const insertIntoDB = async (data: Banner): Promise<Banner> => {
   const result = await prisma.banner.create({
     data,
   });
-    return result;
-}
+  return result;
+};
 
 const getAllFromDb = async (): Promise<Banner[]> => {
   const result = await prisma.banner.findMany();
@@ -20,6 +20,9 @@ const getBannerById = async (id: string): Promise<Banner | null> => {
       id,
     },
   });
+  if (!result) {
+    throw new ApiError(400, 'Banner not found');
+  }
   return result;
 };
 

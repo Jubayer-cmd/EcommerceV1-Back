@@ -1,7 +1,16 @@
 import { Brand } from '@prisma/client';
 import prisma from '../../../utils/prisma';
+import ApiError from '../../../errors/ApiError';
 
 const insertIntoDB = async (data: Brand): Promise<Brand> => {
+  const isBrandExist = await prisma.brand.findFirst({
+    where: {
+      name: data.name,
+    },
+  });
+  if (isBrandExist) {
+    throw new ApiError(400, 'Brand already exist');
+  }
   const result = await prisma.brand.create({
     data,
   });
@@ -19,6 +28,9 @@ const getbrandById = async (id: string): Promise<Brand | null> => {
       id,
     },
   });
+  if (!result) {
+    throw new ApiError(400, 'Brand not found');
+  }
   return result;
 };
 

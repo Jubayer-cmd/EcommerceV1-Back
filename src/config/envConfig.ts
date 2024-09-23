@@ -28,4 +28,11 @@ export default {
     sslPaymentUrl: process.env.SSL_BASE_PAYMENT_URL,
     sslValidationUrl: process.env.SSL_BASE_VALIDATION_URL,
   },
+
+  bucketName: process.env.BUCKET_NAME,
+  cloudinary: {
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+  },
 };
