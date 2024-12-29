@@ -1,12 +1,8 @@
 import bcrypt from 'bcrypt';
 import { Secret } from 'jsonwebtoken';
-
 import { PrismaClient, User } from '@prisma/client';
-
 import httpStatus from 'http-status';
-
 import ApiError from '../../../errors/ApiError';
-
 import { ILoginUserResponse, IRefreshTokenResponse } from './auth.interface';
 import { sendEmail } from './sentResetMail';
 import envConfig from '../../../config/envConfig';
@@ -14,14 +10,15 @@ import { jwtHelpers } from '../../../utils/jwtHelpers';
 
 const prisma = new PrismaClient();
 // creating user
-const createUserService = async (user: User): Promise<User | null> => {
+const createUserService = async (data: any): Promise<User | null> => {
+  console.log('checl', data, envConfig.bycrypt_salt_rounds);
   const hashedPassword = await bcrypt.hash(
-    user?.password,
+    data?.password,
     Number(envConfig.bycrypt_salt_rounds),
   );
-  user.password = hashedPassword;
+  data.password = hashedPassword;
   const result = await prisma.user.create({
-    data: user,
+    data: data,
   });
   if (!result) {
     throw new ApiError(400, 'failed to create User');
@@ -273,6 +270,15 @@ const resetPassword = async (
   });
 };
 
+const getUserDetails = async (id: string): Promise<User | null> => {
+  const result = await prisma.user.findUnique({
+    where: {
+      id: id,
+    },
+  });
+
+  return result;
+};
 export const authService = {
   createUserService,
   loginUserService,
@@ -281,4 +287,5 @@ export const authService = {
   changePassword,
   forgotPassword,
   resetPassword,
+  getUserDetails,
 };

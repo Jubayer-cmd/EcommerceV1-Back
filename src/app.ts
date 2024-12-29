@@ -3,10 +3,14 @@ import cors from 'cors';
 import { rateLimit } from 'express-rate-limit';
 import express, { Application, NextFunction, Request, Response } from 'express';
 import httpStatus from 'http-status';
+import swaggerJSDoc from 'swagger-jsdoc';
+import swaggerUI from 'swagger-ui-express';
+import { swaggerOptions } from './config/swagger.config';
 import globalErrorHandler from './app/middleware/globalErrorHandler';
 import router from './app/routes/router';
 import morgan from 'morgan';
 import fileUpload from 'express-fileupload';
+
 const app: Application = express();
 
 //  apply to all requests
@@ -17,12 +21,41 @@ const limiter = rateLimit({
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
 });
 
+// Add security headers
+app.use((req: Request, res: Response, next: NextFunction) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header(
+    'Access-Control-Allow-Methods',
+    'GET,PUT,POST,DELETE,PATCH,OPTIONS',
+  );
+  res.header(
+    'Access-Control-Allow-Headers',
+    'Origin, X-Requested-With, Content-Type, Accept, Authorization',
+  );
+
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    res.header(
+      'Access-Control-Allow-Methods',
+      'GET,PUT,POST,DELETE,PATCH,OPTIONS',
+    );
+    return res.status(200).json({});
+  }
+  next();
+});
+
 app.use(
   cors({
-    origin: 'http://localhost:3000',
+    origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
     credentials: true,
   }),
 );
+
+// Disable CORS for Swagger docs
+app.use('/api-docs', (req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  next();
+});
 
 app.use(cookieParser());
 
@@ -35,14 +68,31 @@ app.use(limiter);
 
 app.use(morgan('dev'));
 
-app.use(fileUpload({
-  limits: { fileSize: 50 * 1024 * 1024 },
+app.use(
+  fileUpload({
+    limits: { fileSize: 50 * 1024 * 1024 },
+  }),
+);
+
+// Swagger Setup
+const swaggerSpec = swaggerJSDoc(swaggerOptions);
+app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerSpec, {
+  explorer: true,
+  customSiteTitle: "E-commerce API Documentation",
+  customCss: '.swagger-ui .topbar { display: none }',
+  customfavIcon: ""
 }));
+
+// Add console log for swagger URL
+console.log(
+  `📝 Swagger Documentation is available at http://localhost:9000/api-docs`,
+);
+
 //routes
 app.use('/api/v1', router);
 
 app.get('/', (req: Request, res: Response) => {
-  res.send('Softkey is Running! 🏇');
+  res.send('Ecom is Running! 🏇');
 });
 //global error handler
 app.use(globalErrorHandler);

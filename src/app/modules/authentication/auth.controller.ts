@@ -12,7 +12,9 @@ import sendResponse from '../../../utils/sendResponse';
 // signup
 const createUser: RequestHandler = catchAsync(
   async (req: Request, res: Response) => {
+    console.log(req.body);
     const result = await authService.createUserService(req.body);
+
     if (result) {
       const { password, ...dataWithoutPass } = result;
       return sendResponse<Omit<User, 'password'>>(res, {
@@ -102,11 +104,24 @@ const resetPassword = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const userDetails = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.user as User;
+  const result = await authService.getUserDetails(id);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'User details fetched successfully!',
+    data: result,
+  });
+});
+
 export const authController = {
   createUser,
   loginUser,
   getRefreshToken,
   changePassword,
   forgotPassword,
+  userDetails,
   resetPassword,
 };

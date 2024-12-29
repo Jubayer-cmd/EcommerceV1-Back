@@ -7,7 +7,8 @@
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "proxy": "http://localhost:5000"
   },
   "keywords": [],
   "author": "jubayer-cmd",
@@ -15,6 +16,7 @@
   "dependencies": {
     "@prisma/client": "^5.19.1",
     "@types/express-fileupload": "^1.5.1",
+    "@types/swagger-ui-express": "^4.1.7",
     "axios": "^1.7.7",
     "bcrypt": "^5.1.1",
     "cloudinary": "^2.5.0",
@@ -25,6 +27,7 @@
     "express-fileupload": "^1.5.1",
     "express-rate-limit": "^7.4.0",
     "http-status": "^1.7.4",
+    "install": "^0.13.0",
     "jsonwebtoken": "^9.0.2",
     "multer": "1.4.5-lts.1",
     "node-cron": "^3.0.3",
@@ -32,6 +35,8 @@
     "sharp": "^0.33.5",
     "sslcommerz-lts": "^1.1.0",
     "streamifier": "^0.1.1",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
     "zod": "^3.23.8"
   },
   "devDependencies": {
@@ -44,6 +49,7 @@
     "@types/multer": "^1.4.12",
     "@types/node": "^20.16.5",
     "@types/nodemailer": "^6.4.16",
+    "@types/swagger-jsdoc": "^6.0.4",
     "morgan": "^1.10.0",
     "prisma": "^5.19.1",
     "ts-node": "^10.9.2",
