@@ -16,6 +16,7 @@ model User {
   role             Role?             @default(user)
   phone            String?           @unique
   address          String?
+  isActive         Boolean           @default(true)
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
   reviews          UserReview[]
@@ -42,6 +43,7 @@ model UserFile {
   height      Int
   bytes       Int
   description String?  @default("")
+  isActive    Boolean  @default(true)
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
 
@@ -53,6 +55,7 @@ model Service {
   name        String
   description String?
   image       String?
+  isActive    Boolean      @default(true)
   UserReview  UserReview[]
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
@@ -65,6 +68,7 @@ model Category {
   id          String        @id @default(uuid())
   name        String
   description String?
+  isActive    Boolean       @default(true)
   products    Product[]
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
@@ -78,6 +82,7 @@ model Brand {
   name        String
   description String?
   logo        String?
+  isActive    Boolean   @default(true)
   products    Product[]
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -89,6 +94,7 @@ model SubCategory {
   id          String    @id @default(uuid())
   name        String
   description String?
+  isActive    Boolean   @default(true)
   category    Category  @relation(fields: [categoryId], references: [id])
   categoryId  String
   products    Product[]
@@ -104,6 +110,7 @@ model Product {
   description   String?
   image         String?
   price         Float
+  isActive      Boolean           @default(true)
   brand         Brand?            @relation(fields: [brandId], references: [id])
   brandId       String?
   subCategory   SubCategory?      @relation(fields: [subCategoryId], references: [id])
@@ -128,6 +135,7 @@ model ProductReview {
   id        String   @id @default(uuid())
   rating    Int
   content   String?
+  isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   productId String
@@ -174,6 +182,7 @@ model UserReview {
   id        String   @id @default(uuid())
   rating    Int
   content   String?
+  isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   service   Service  @relation(fields: [serviceId], references: [id])
@@ -192,6 +201,7 @@ model Booking {
   user      User          @relation(fields: [userId], references: [id])
   date      DateTime
   status    BookingStatus
+  isActive  Boolean       @default(true)
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
 
@@ -203,6 +213,7 @@ model Blog {
   title      String
   content    String
   image      String?
+  isActive   Boolean  @default(true)
   author     User     @relation(fields: [authorId], references: [id])
   authorId   String
   authorName String
@@ -253,6 +264,7 @@ model Order {
   lastName      String
   paymentMethod PaymentMethod
   status        OrderStatus
+  isActive      Boolean        @default(true)
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   orderProduct  OrderProduct[]
@@ -275,6 +287,7 @@ model OrderProduct {
   productId String
   product   Product @relation(fields: [productId], references: [id])
   quantity  Int
+  isActive  Boolean @default(true)
 
   @@map("order_product")
 }
@@ -287,6 +300,7 @@ model Payment {
   paymentStatus      PaymentStatus @default(pending)
   transactionId      String
   paymentGatewayData Json?
+  isActive           Boolean       @default(true)
   createdAt          DateTime      @default(now())
   updatedAt          DateTime      @updatedAt
   orderId            String? // Updated to link to Order
@@ -301,17 +315,11 @@ model SupportTicket {
   title       String
   description String
   status      TicketStatus // Enum: open, closed, pending, etc.
+  isActive    Boolean      @default(true)
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
   @@map("support_ticket")
-}
-
-enum TicketStatus {
-  open
-  closed
-  pending
-  // Add more statuses as needed
 }
 
 model Banner {
@@ -319,7 +327,7 @@ model Banner {
   title     String
   image     String
   type      String
-  status    Boolean  @default(true)
+  isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -347,23 +355,11 @@ model PromotionConditions {
   id            String        @id @default(uuid())
   conditionType ConditionType // Enum: minimum_purchase_amount, specific_products, etc.
   value         String // Condition value (e.g., "$100", "product_id", etc.)
+  isActive      Boolean       @default(true)
   promotion     Promotion     @relation(fields: [promotionId], references: [id])
   promotionId   String
 
   @@map("promotion_conditions")
-}
-
-enum PromotionType {
-  discount
-  flash_sale
-  seasonal_offer
-  // Add more types as needed
-}
-
-enum ConditionType {
-  minimum_purchase_amount
-  specific_products
-  // Add more conditions as needed
 }
 
 model Coupon {
@@ -377,6 +373,7 @@ model Coupon {
   startDate    DateTime
   expireDate   DateTime
   status       Boolean      @default(true)
+  isActive     Boolean      @default(true)
   couponType   CouponType? // Enum: public, private, one_time, etc.
 
   createdAt DateTime @default(now())
@@ -433,4 +430,20 @@ enum BookingStatus {
   confirmed
   canceled
   completed
+}
+
+enum TicketStatus {
+  open
+  closed
+  pending
+}
+
+enum ConditionType {
+  minimum_purchase_amount
+  specific_products
+}
+enum PromotionType {
+  discount
+  flash_sale
+  seasonal_offer
 }
