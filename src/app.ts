@@ -76,12 +76,16 @@ app.use(
 
 // Swagger Setup
 const swaggerSpec = swaggerJSDoc(swaggerOptions);
-app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerSpec, {
-  explorer: true,
-  customSiteTitle: "E-commerce API Documentation",
-  customCss: '.swagger-ui .topbar { display: none }',
-  customfavIcon: ""
-}));
+app.use(
+  '/api-docs',
+  swaggerUI.serve,
+  swaggerUI.setup(swaggerSpec, {
+    explorer: true,
+    customSiteTitle: 'E-commerce API Documentation',
+    customCss: '.swagger-ui .topbar { display: none }',
+    customfavIcon: '',
+  }),
+);
 
 // Add console log for swagger URL
 console.log(

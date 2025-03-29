@@ -77,6 +77,7 @@ model Brand {
   id          String    @id @default(uuid())
   name        String
   description String?
+  logo        String?
   products    Product[]
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -414,7 +415,7 @@ enum PaymentMethod {
 }
 
 enum Role {
-  superadmin
+  superAdmin
   admin
   user
 }

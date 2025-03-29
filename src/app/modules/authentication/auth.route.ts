@@ -23,10 +23,13 @@ const router = express.Router();
  *             properties:
  *               email:
  *                 type: string
- *                 example: "john@example.com"
+ *                 example: "sheikhabujubayer@gmail.com"
  *               password:
  *                 type: string
- *                 example: "securePass123"
+ *                 example: "11223344"
+ *               name:
+ *                 type: string
+ *                 example: "Sheikh Abu Jubayer"
  *     responses:
  *       200:
  *         description: User created

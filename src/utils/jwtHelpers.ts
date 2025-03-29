@@ -24,11 +24,35 @@ const createResetToken = (
 };
 const verifyToken = (token: string, secret: Secret): JwtPayload => {
   try {
+    if (!token) {
+      throw new ApiError(httpStatus.UNAUTHORIZED, 'No token provided');
+    }
+
+    // Check if token is properly formatted
+    if (token.trim() === '') {
+      throw new ApiError(httpStatus.UNAUTHORIZED, 'Empty token provided');
+    }
+
     const isVerified = verify(token, secret) as JwtPayload;
     return isVerified;
   } catch (error) {
-    console.log(error);
-    throw new ApiError(httpStatus.UNAUTHORIZED, 'Invalid token');
+    if (error instanceof ApiError) {
+      throw error;
+    }
+
+    console.log('JWT Verification Error:', error);
+
+    // Provide more specific error messages based on error type
+    if (error.name === 'JsonWebTokenError') {
+      throw new ApiError(
+        httpStatus.UNAUTHORIZED,
+        `Invalid token: ${error.message}`,
+      );
+    } else if (error.name === 'TokenExpiredError') {
+      throw new ApiError(httpStatus.UNAUTHORIZED, 'Token has expired');
+    } else {
+      throw new ApiError(httpStatus.UNAUTHORIZED, 'Invalid token');
+    }
   }
 };
 
