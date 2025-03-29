@@ -12,7 +12,6 @@ import sendResponse from '../../../utils/sendResponse';
 // signup
 const createUser: RequestHandler = catchAsync(
   async (req: Request, res: Response) => {
-    console.log(req.body);
     const result = await authService.createUserService(req.body);
 
     if (result) {
@@ -29,7 +28,6 @@ const createUser: RequestHandler = catchAsync(
 // login
 const loginUser: RequestHandler = catchAsync(
   async (req: Request, res: Response) => {
-    console.log(req.body);
     const result = await authService.loginUserService(req.body);
     const { refreshToken, accessToken } = result;
     console.log(result);

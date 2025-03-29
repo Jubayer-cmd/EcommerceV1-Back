@@ -7,7 +7,6 @@ import { carouselervice } from './carousel.service';
 const insertIntoDB = catchAsync(async (req: Request, res: Response) => {
   const uploadedFiles = req.files as any;
   const filePaths = uploadedFiles.map((file: any) => file.path);
-  console.log(filePaths);
   const result = await carouselervice.insertIntoDB(req.body, filePaths);
   sendResponse(res, {
     statusCode: httpStatus.OK,

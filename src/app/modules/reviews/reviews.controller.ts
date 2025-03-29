@@ -1,17 +1,16 @@
-import { UserReview } from "@prisma/client";
-import { Request, RequestHandler, Response } from "express";
-import httpStatus from "http-status";
-import catchAsync from "../../../utils/catchAsync";
-import sendResponse from "../../../utils/sendResponse";
-import { reviewservice } from "./reviews.service";
+import { UserReview } from '@prisma/client';
+import { Request, RequestHandler, Response } from 'express';
+import httpStatus from 'http-status';
+import catchAsync from '../../../utils/catchAsync';
+import sendResponse from '../../../utils/sendResponse';
+import { reviewservice } from './reviews.service';
 
 const insertIntoDB = catchAsync(async (req: Request, res: Response) => {
-  console.log(req.body);
   const result = await reviewservice.insertIntoDB(req.body);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: "reviews created successfully",
+    message: 'reviews created successfully',
     data: result,
   });
 });
@@ -24,10 +23,10 @@ const getreviews: RequestHandler = catchAsync(
     sendResponse<UserReview[]>(res, {
       statusCode: 200,
       success: true,
-      message: "reviews fetched successfully",
+      message: 'reviews fetched successfully',
       data: result,
     });
-  }
+  },
 );
 
 const getreviewsById = catchAsync(async (req: Request, res: Response) => {
@@ -35,7 +34,7 @@ const getreviewsById = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: "reviews fetched successfully",
+    message: 'reviews fetched successfully',
     data: result,
   });
 });
@@ -45,7 +44,7 @@ const deleteFromDB = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: "reviews deleted successfully",
+    message: 'reviews deleted successfully',
     data: result,
   });
 });
@@ -55,7 +54,7 @@ const updateIntoDB = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: "reviews updated successfully",
+    message: 'reviews updated successfully',
     data: result,
   });
 });

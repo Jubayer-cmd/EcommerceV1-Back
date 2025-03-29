@@ -12,7 +12,6 @@ const auth =
     try {
       // Get authorization token
       const authHeader = req.headers.authorization;
-      console.log('Authorization Header:', authHeader);
 
       if (!authHeader) {
         throw new ApiError(httpStatus.UNAUTHORIZED, 'You are not authorized');
@@ -33,8 +32,6 @@ const auth =
         throw new ApiError(httpStatus.UNAUTHORIZED, 'Empty token provided');
       }
 
-      console.log('Extracted token length:', token.length);
-
       // Verify token
       const verifiedUser = jwtHelpers.verifyToken(
         token,
@@ -42,7 +39,7 @@ const auth =
       );
 
       req.user = verifiedUser;
-      console.log(req.user);
+
       // Role-based guard
       if (requiredRoles.length && !requiredRoles.includes(verifiedUser.role)) {
         throw new ApiError(httpStatus.FORBIDDEN, 'Forbidden');

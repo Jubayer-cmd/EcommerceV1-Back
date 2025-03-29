@@ -5,7 +5,6 @@ import sendResponse from '../../../utils/sendResponse';
 import { subCategoryService } from './subCategory.service';
 
 const insertIntoDB = catchAsync(async (req: Request, res: Response) => {
-  console.log('ki re vai', req.body);
   const result = await subCategoryService.insertIntoDB(req.body);
   sendResponse(res, {
     statusCode: httpStatus.OK,

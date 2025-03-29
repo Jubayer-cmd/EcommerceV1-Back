@@ -51,7 +51,6 @@ const deleteFromDB = catchAsync(async (req: Request, res: Response) => {
 });
 
 const updateIntoDB = catchAsync(async (req: Request, res: Response) => {
-  console.log(req.params.id, req.body);
   const image = req?.file?.path;
   const newImagePath = `file:///D:/ecommerce/${image}`;
   if (image) {

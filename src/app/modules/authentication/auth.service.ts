@@ -11,7 +11,6 @@ import { jwtHelpers } from '../../../utils/jwtHelpers';
 const prisma = new PrismaClient();
 // creating user
 const createUserService = async (data: any): Promise<User | null> => {
-  console.log('checl', data, envConfig.bycrypt_salt_rounds);
   const hashedPassword = await bcrypt.hash(
     data?.password,
     Number(envConfig.bycrypt_salt_rounds),
@@ -32,7 +31,7 @@ const getByEmailFromDB = async (email: string): Promise<User | null> => {
       email: email,
     },
   });
-  console.log('check the result', result);
+
   return result;
 };
 
@@ -42,7 +41,7 @@ const getByPhoneFromDB = async (phone: string): Promise<User | null> => {
       phone: phone,
     },
   });
-  console.log('check the result', result);
+
   return result;
 };
 
@@ -84,7 +83,7 @@ const loginUserService = async (payload: {
 
   // Create access token & refresh token
   const { id, role } = isUserExist;
-  console.log('check the role', role, id);
+
   const accessToken = jwtHelpers.createToken(
     { id, role, email: isUserExist.email },
     envConfig.jwt.secret as Secret,
@@ -198,11 +197,7 @@ const forgotPassword = async (payload: { email: string }) => {
     '50m',
   );
 
-  console.log(passResetToken);
-
   const resetLink: string = envConfig.clientUrl + `token=${passResetToken}`;
-
-  console.log('profile:', resetLink);
 
   await sendEmail(
     user.email,
@@ -246,8 +241,6 @@ const resetPassword = async (
   if (isVerified.email !== email) {
     throw new ApiError(httpStatus.UNAUTHORIZED, 'Invalid token!');
   }
-
-  console.log(isVerified);
 
   if (!isVerified) {
     throw new ApiError(httpStatus.UNAUTHORIZED, 'Invalid token!');
