@@ -40,11 +40,7 @@ router.post(
  *       200:
  *         description: List of sub-categories
  */
-router.get(
-  '/subCategories',
-  auth(ENUM_USER_ROLE.ADMIN),
-  subCategoryController.getAllFromDb,
-);
+router.get('/', auth(ENUM_USER_ROLE.ADMIN), subCategoryController.getAllFromDb);
 
 /**
  * @swagger
@@ -63,7 +59,7 @@ router.get(
  *         description: Sub-category details
  */
 router.get(
-  '/subCategories/:id',
+  '/:id',
   auth(ENUM_USER_ROLE.ADMIN),
   subCategoryController.getSubCategoryById,
 );
@@ -85,7 +81,7 @@ router.get(
  *         description: Sub-category deleted
  */
 router.delete(
-  '/subCategories/:id',
+  '/:id',
   auth(ENUM_USER_ROLE.ADMIN),
   subCategoryController.deleteFromDB,
 );
@@ -113,7 +109,7 @@ router.delete(
  *         description: Sub-category updated
  */
 router.patch(
-  '/subCategories/:id',
+  '/:id',
   auth(ENUM_USER_ROLE.ADMIN),
   validateRequest(SubCategoryValidation.updateSubCategory),
   subCategoryController.updateIntoDB,

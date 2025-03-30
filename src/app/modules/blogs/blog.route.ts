@@ -1,7 +1,7 @@
-import express from "express";
-import { ENUM_USER_ROLE } from "../../../interface/common";
-import auth from "../../middleware/auth";
-import { blogsController } from "./blog.controller";
+import express from 'express';
+import { ENUM_USER_ROLE } from '../../../interface/common';
+import auth from '../../middleware/auth';
+import { blogsController } from './blog.controller';
 
 const router = express.Router();
 
@@ -15,7 +15,7 @@ const router = express.Router();
  *       200:
  *         description: Blog created
  */
-router.post("/blogs/create-blogs", blogsController.insertIntoDB);
+router.post('/create-blogs', blogsController.insertIntoDB);
 
 /**
  * @swagger
@@ -27,7 +27,7 @@ router.post("/blogs/create-blogs", blogsController.insertIntoDB);
  *       200:
  *         description: Returns a list of blogs
  */
-router.get("/blogs", blogsController.getblogs);
+router.get('/', blogsController.getblogs);
 
 /**
  * @swagger
@@ -43,7 +43,7 @@ router.get("/blogs", blogsController.getblogs);
  *       200:
  *         description: Returns the requested blog
  */
-router.get("/blogs/:id", blogsController.getblogsById);
+router.get('/:id', blogsController.getblogsById);
 
 /**
  * @swagger
@@ -59,7 +59,7 @@ router.get("/blogs/:id", blogsController.getblogsById);
  *       200:
  *         description: Blog deleted
  */
-router.delete("/blogs/:id", blogsController.deleteFromDB);
+router.delete('/:id', blogsController.deleteFromDB);
 
 /**
  * @swagger
@@ -75,10 +75,6 @@ router.delete("/blogs/:id", blogsController.deleteFromDB);
  *       200:
  *         description: Blog updated
  */
-router.patch(
-  "/blogs/:id",
-  auth(ENUM_USER_ROLE.ADMIN),
-  blogsController.updateIntoDB
-);
+router.patch('/:id', auth(ENUM_USER_ROLE.ADMIN), blogsController.updateIntoDB);
 
 export const blogsRoutes = router;

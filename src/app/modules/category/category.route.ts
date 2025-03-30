@@ -31,7 +31,7 @@ const router = express.Router();
  *         description: Category created
  */
 router.post(
-  '/categories/create-category',
+  '/create-category',
   auth(ENUM_USER_ROLE.ADMIN),
   validateRequest(CategoryValidation.createCategory),
   categoryController.insertIntoDB,
@@ -47,11 +47,7 @@ router.post(
  *       200:
  *         description: List of categories
  */
-router.get(
-  '/categories',
-  auth(ENUM_USER_ROLE.ADMIN),
-  categoryController.getAllFromDb,
-);
+router.get('/', auth(ENUM_USER_ROLE.ADMIN), categoryController.getAllFromDb);
 
 /**
  * @swagger
@@ -69,7 +65,7 @@ router.get(
  *       200:
  *         description: Category details
  */
-router.get('/categories/:id', categoryController.getUserById);
+router.get('/:id', categoryController.getUserById);
 
 /**
  * @swagger
@@ -88,7 +84,7 @@ router.get('/categories/:id', categoryController.getUserById);
  *         description: Category deleted
  */
 router.delete(
-  '/categories/:id',
+  '/:id',
   auth(ENUM_USER_ROLE.ADMIN),
   categoryController.deleteFromDB,
 );
@@ -123,7 +119,7 @@ router.delete(
  *         description: Category updated
  */
 router.patch(
-  '/categories/:id',
+  '/:id',
   auth(ENUM_USER_ROLE.ADMIN),
   validateRequest(CategoryValidation.updateCategory),
   categoryController.updateIntoDB,

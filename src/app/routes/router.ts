@@ -35,12 +35,12 @@ const moduleRoutes = [
   },
 
   {
-    path: '/',
+    path: '/categories',
     route: categoryRoutes,
   },
 
   {
-    path: '/',
+    path: '/blogs',
     route: blogsRoutes,
   },
 
@@ -80,7 +80,7 @@ const moduleRoutes = [
   },
 
   {
-    path: '/sub-category',
+    path: '/subcategories',
     route: subCategoryRoutes,
   },
 

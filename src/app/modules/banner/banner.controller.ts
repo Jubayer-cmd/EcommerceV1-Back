@@ -64,7 +64,27 @@ const deleteFromDB = catchAsync(async (req: Request, res: Response) => {
 });
 
 const updateIntoDB = catchAsync(async (req: Request, res: Response) => {
-  const result = await bannerService.updateIntoDB(req.params.id, req.body);
+  let updatedData = { ...req.body };
+
+  // Handle image upload if present
+  if (req.files && 'image' in req.files) {
+    const image = Array.isArray(req.files['image'])
+      ? req.files['image'][0]
+      : (req.files['image'] as Express.Multer.File);
+
+    const uploadResult = await FileUploadHelper.uploadToCloudinary(
+      image as any,
+    );
+
+    if (!uploadResult) {
+      throw new ApiError(500, 'Image upload failed');
+    }
+
+    // Add image URL to the update data
+    updatedData.image = uploadResult.secure_url;
+  }
+
+  const result = await bannerService.updateIntoDB(req.params.id, updatedData);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
