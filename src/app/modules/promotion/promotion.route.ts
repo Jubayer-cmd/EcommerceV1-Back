@@ -89,7 +89,7 @@ const router = express.Router();
 router.post(
   '/create-promotion',
   // auth(ENUM_USER_ROLE.ADMIN),
-  validateRequest(PromotionValidation.createValidation),
+  // validateRequest(PromotionValidation.createValidation),
   promotionController.insertIntoDB,
 );
 
@@ -255,7 +255,7 @@ router.post(
 router.patch(
   '/:id',
   auth(ENUM_USER_ROLE.ADMIN),
-  validateRequest(PromotionValidation.updateValidation),
+  // validateRequest(PromotionValidation.updateValidation),
   promotionController.updateIntoDB,
 );
 

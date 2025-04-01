@@ -41,10 +41,25 @@ const insertIntoDB = async (
     usageLimit,
     usageLimitPerUser,
     minPurchase,
-    conditions,
-    productIds,
-    categoryIds,
+    conditions: rawConditions,
+    productIds: rawProductIds,
+    categoryIds: rawCategoryIds,
   } = data;
+
+  console.log('Promotion data:', data);
+
+  // Parse JSON strings if needed
+  const conditions = parseJsonIfString(rawConditions);
+  const productIds = parseJsonIfString(rawProductIds);
+  const categoryIds = parseJsonIfString(rawCategoryIds);
+
+  const discountFloat = parseFloat(discount);
+  const maxDiscountFloat = maxDiscount ? parseFloat(maxDiscount) : null;
+  const minPurchaseFloat = minPurchase ? parseFloat(minPurchase) : null;
+  const usageLimitFloat = usageLimit ? parseFloat(usageLimit) : null;
+  const usageLimitPerUserFloat = usageLimitPerUser
+    ? parseFloat(usageLimitPerUser)
+    : null;
 
   // Check if a promotion with this code already exists
   const existingPromotion = await prisma.promotion.findFirst({
@@ -67,29 +82,31 @@ const insertIntoDB = async (
         type: type as PromotionType,
         startDate: new Date(startDate),
         endDate: new Date(endDate),
-        discount,
+        discount: discountFloat,
         discountType: discountType as DiscountType,
-        maxDiscount,
-        usageLimit,
-        usageLimitPerUser,
-        minPurchase,
+        maxDiscount: maxDiscountFloat,
+        usageLimit: usageLimitFloat,
+        usageLimitPerUser: usageLimitPerUserFloat,
+        minPurchase: minPurchaseFloat,
       },
     });
 
     // Insert promotion conditions if provided
-    if (conditions && conditions.length > 0) {
+    if (conditions && Array.isArray(conditions) && conditions.length > 0) {
       await tx.promotionConditions.createMany({
         data: conditions.map((condition) => ({
           promotionId: promotion.id,
           conditionType: condition.conditionType as ConditionType,
           value: condition.value,
-          jsonValue: condition.jsonValue ?? null,
+          jsonValue: condition.jsonValue
+            ? (condition.jsonValue as any)
+            : Prisma.JsonNull,
         })),
       });
     }
 
     // Link products if provided
-    if (productIds && productIds.length > 0) {
+    if (productIds && Array.isArray(productIds) && productIds.length > 0) {
       await tx.promotionProduct.createMany({
         data: productIds.map((productId) => ({
           promotionId: promotion.id,
@@ -99,7 +116,7 @@ const insertIntoDB = async (
     }
 
     // Link categories if provided
-    if (categoryIds && categoryIds.length > 0) {
+    if (categoryIds && Array.isArray(categoryIds) && categoryIds.length > 0) {
       await tx.promotionCategory.createMany({
         data: categoryIds.map((categoryId) => ({
           promotionId: promotion.id,
@@ -659,6 +676,19 @@ const recordPromotionUsage = async (
   });
 
   return usage;
+};
+
+// Helper function to parse JSON strings
+const parseJsonIfString = (value: any): any => {
+  if (typeof value === 'string') {
+    try {
+      return JSON.parse(value);
+    } catch (error) {
+      console.error('Error parsing JSON string:', error);
+      return value;
+    }
+  }
+  return value;
 };
 
 export const promotionService = {
