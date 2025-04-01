@@ -24,7 +24,9 @@ import {
  * @param data - The promotion data
  * @returns The created promotion with its relations
  */
-const insertIntoDB = async (data: ICreatePromotion): Promise<Promotion> => {
+const insertIntoDB = async (
+  data: ICreatePromotion,
+): Promise<IPromotionWithRelations> => {
   const {
     name,
     code,
@@ -44,7 +46,7 @@ const insertIntoDB = async (data: ICreatePromotion): Promise<Promotion> => {
     categoryIds,
   } = data;
 
-  // Check if promotion with this code already exists
+  // Check if a promotion with this code already exists
   const existingPromotion = await prisma.promotion.findFirst({
     where: { code },
   });
@@ -53,8 +55,9 @@ const insertIntoDB = async (data: ICreatePromotion): Promise<Promotion> => {
     throw new ApiError(400, 'Promotion code already exists');
   }
 
+  // Use a transaction to ensure atomicity
   const result = await prisma.$transaction(async (tx) => {
-    // Create promotion
+    // Create the promotion
     const promotion = await tx.promotion.create({
       data: {
         name,
@@ -73,14 +76,14 @@ const insertIntoDB = async (data: ICreatePromotion): Promise<Promotion> => {
       },
     });
 
-    // Add promotion conditions if provided
+    // Insert promotion conditions if provided
     if (conditions && conditions.length > 0) {
       await tx.promotionConditions.createMany({
         data: conditions.map((condition) => ({
           promotionId: promotion.id,
           conditionType: condition.conditionType as ConditionType,
           value: condition.value,
-          jsonValue: condition.jsonValue || null,
+          jsonValue: condition.jsonValue ?? null,
         })),
       });
     }
@@ -108,20 +111,23 @@ const insertIntoDB = async (data: ICreatePromotion): Promise<Promotion> => {
     return promotion;
   });
 
-  // Return the created promotion with all relations
+  // Retrieve the newly created promotion with its relations.
   const createdPromotion = await prisma.promotion.findUnique({
     where: { id: result.id },
     include: {
       conditions: true,
-      promotionProduct: {
+      appliedProducts: {
         include: {
           product: true,
         },
       },
-      promotionCategory: {
+      appliedCategories: {
         include: {
           category: true,
         },
+      },
+      usages: {
+        orderBy: { usedAt: 'desc' },
       },
     },
   });
@@ -130,7 +136,7 @@ const insertIntoDB = async (data: ICreatePromotion): Promise<Promotion> => {
     throw new ApiError(500, 'Failed to retrieve created promotion');
   }
 
-  return createdPromotion;
+  return createdPromotion as IPromotionWithRelations;
 };
 
 const getAllFromDb = async (
@@ -170,16 +176,16 @@ const getAllFromDb = async (
       where,
       include: {
         conditions: true,
-        promotionProduct: {
+        appliedProducts: {
           include: {
             product: { select: { id: true, name: true, image: true } },
           },
         },
-        promotionCategory: {
+        appliedCategories: {
           include: { category: { select: { id: true, name: true } } },
         },
         _count: {
-          select: { promotionUsage: true },
+          select: { usages: true },
         },
       },
       skip,
@@ -205,13 +211,13 @@ const getPromotionById = async (id: string): Promise<any> => {
     where: { id },
     include: {
       conditions: true,
-      promotionProduct: {
+      appliedProducts: {
         include: { product: true },
       },
-      promotionCategory: {
+      appliedCategories: {
         include: { category: true },
       },
-      promotionUsage: {
+      usages: {
         take: 10,
         orderBy: {
           usedAt: 'desc',
@@ -344,12 +350,12 @@ const updateIntoDB = async (
     where: { id },
     include: {
       conditions: true,
-      promotionProduct: {
+      appliedProducts: {
         include: {
           product: true,
         },
       },
-      promotionCategory: {
+      appliedCategories: {
         include: {
           category: true,
         },
@@ -404,13 +410,13 @@ const validatePromotion = async (
     },
     include: {
       conditions: true,
-      promotionProduct: {
+      appliedProducts: {
         include: { product: true },
       },
-      promotionCategory: {
+      appliedCategories: {
         include: { category: true },
       },
-      promotionUsage: true,
+      usages: true,
     },
   })) as IPromotionWithRelations;
 
@@ -430,15 +436,15 @@ const validatePromotion = async (
   // Check usage limits
   if (
     promotion.usageLimit &&
-    promotion.promotionUsage &&
-    promotion.promotionUsage.length >= promotion.usageLimit
+    promotion.usages &&
+    promotion.usages.length >= promotion.usageLimit
   ) {
     throw new ApiError(400, 'This promotion has reached its usage limit');
   }
 
   // Check user-specific usage limits
-  if (userId && promotion.usageLimitPerUser && promotion.promotionUsage) {
-    const userUsageCount = promotion.promotionUsage.filter(
+  if (userId && promotion.usageLimitPerUser && promotion.usages) {
+    const userUsageCount = promotion.usages.filter(
       (usage) => usage.userId === userId,
     ).length;
     if (userUsageCount >= promotion.usageLimitPerUser) {
@@ -500,7 +506,7 @@ const calculateDiscountAmount = (
 const validateConditions = async (
   promotion: Promotion & {
     conditions?: IPromotionConditionResponse[];
-    promotionUsage: any[]; // Changed from usages
+    usages: any[];
     usageLimit?: number | null;
     usageLimitPerUser?: number | null;
     minPurchase?: number | null;

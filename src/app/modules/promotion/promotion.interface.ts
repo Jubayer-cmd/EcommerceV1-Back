@@ -95,10 +95,10 @@ export interface IAppliedCategoryResponse {
 
 export interface IPromotionWithRelations extends Promotion {
   conditions?: IPromotionConditionResponse[];
-  promotionProduct?: IAppliedProductResponse[]; // Changed from appliedProducts
-  promotionCategory?: IAppliedCategoryResponse[]; // Changed from appliedCategories
-  promotionUsage?: {
-    // Changed from usages
+  appliedProducts?: IAppliedProductResponse[]; // Changed from promotionProduct
+  appliedCategories?: IAppliedCategoryResponse[]; // Changed from promotionCategory
+  usages?: {
+    // Changed from promotionUsage
     id: string;
     userId: string;
     promotionId: string;
