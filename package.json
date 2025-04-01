@@ -14,7 +14,7 @@
   "author": "jubayer-cmd",
   "license": "ISC",
   "dependencies": {
-    "@prisma/client": "^5.19.1",
+    "@prisma/client": "^6.5.0",
     "@types/express-fileupload": "^1.5.1",
     "@types/swagger-ui-express": "^4.1.7",
     "axios": "^1.7.7",
@@ -51,7 +51,7 @@
     "@types/nodemailer": "^6.4.16",
     "@types/swagger-jsdoc": "^6.0.4",
     "morgan": "^1.10.0",
-    "prisma": "^5.19.1",
+    "prisma": "^6.5.0",
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.6.2"

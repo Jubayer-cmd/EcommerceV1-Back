@@ -58,7 +58,7 @@ model Service {
   isActive    Boolean      @default(true)
   UserReview  UserReview[]
   createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  updatedAt   DateTime      @updatedAt
   Booking     Booking[]
 
   @@map("service")
@@ -71,8 +71,9 @@ model Category {
   isActive    Boolean       @default(true)
   products    Product[]
   createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  updatedAt   DateTime       @updatedAt
   SubCategory SubCategory[]
+  promotions  PromotionCategory[]
 
   @@map("category")
 }
@@ -85,7 +86,7 @@ model Brand {
   isActive    Boolean   @default(true)
   products    Product[]
   createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  updatedAt   DateTime   @updatedAt
 
   @@map("brand")
 }
@@ -99,7 +100,7 @@ model SubCategory {
   categoryId  String
   products    Product[]
   createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  updatedAt   DateTime   @updatedAt
 
   @@map("sub_category")
 }
@@ -118,7 +119,7 @@ model Product {
   stock         String?
   quantity      Int
   createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
+  updatedAt     DateTime           @updatedAt
   OrderProduct  OrderProduct[]
   Category      Category?         @relation(fields: [categoryId], references: [id])
   categoryId    String?
@@ -127,6 +128,7 @@ model Product {
   reviews       ProductReview[]
   questions     ProductQuestion[]
   Notification  Notification[]
+  promotions    PromotionProduct[]
 
   @@map("product")
 }
@@ -137,7 +139,7 @@ model ProductReview {
   content   String?
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime  @updatedAt
   productId String
   product   Product  @relation(fields: [productId], references: [id])
   userId    String
@@ -151,7 +153,7 @@ model ProductQuestion {
   question  String
   answer    String?
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime  @updatedAt
   productId String
   product   Product  @relation(fields: [productId], references: [id])
   userId    String
@@ -173,7 +175,7 @@ model Notification {
   user             User?            @relation(fields: [userId], references: [id])
   userId           String
   createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
+  updatedAt        DateTime          @updatedAt
 
   @@map("notification")
 }
@@ -184,7 +186,7 @@ model UserReview {
   content   String?
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime  @updatedAt
   service   Service  @relation(fields: [serviceId], references: [id])
   serviceId String
   userId    String
@@ -203,7 +205,7 @@ model Booking {
   status    BookingStatus
   isActive  Boolean       @default(true)
   createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
+  updatedAt DateTime       @updatedAt
 
   @@map("booking")
 }
@@ -218,7 +220,7 @@ model Blog {
   authorId   String
   authorName String
   createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  updatedAt  DateTime  @updatedAt
 
   @@map("blog")
 }
@@ -228,7 +230,7 @@ model Cart {
   user      User       @relation(fields: [userId], references: [id])
   userId    String     @unique
   createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  updatedAt DateTime    @updatedAt
   items     CartItem[] // New relationship: Cart Items
 
   @@map("cart")
@@ -250,32 +252,34 @@ model Wishlist {
   user      User      @relation(fields: [userId], references: [id])
   userId    String
   createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  updatedAt DateTime   @updatedAt
   products  Product[]
 
   @@map("wishlist")
 }
 
 model Order {
-  id            String         @id @default(uuid())
-  userId        String
-  totalAmount   Float
-  firstName     String
-  lastName      String
-  paymentMethod PaymentMethod
-  status        OrderStatus
-  isActive      Boolean        @default(true)
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  orderProduct  OrderProduct[]
-  address       String
-  city          String
-  postcode      String
-  note          String?
-  phone         String
-  User          User           @relation(fields: [userId], references: [id])
-  Notification  Notification[]
-  Payment       Payment[]
+  id                 String         @id @default(uuid())
+  userId             String
+  totalAmount        Float
+  firstName          String
+  lastName           String
+  paymentMethod      PaymentMethod
+  status             OrderStatus
+  isActive           Boolean        @default(true)
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime        @updatedAt
+  orderProduct       OrderProduct[]
+  address            String
+  city               String
+  postcode           String
+  note               String?
+  phone              String
+  User               User           @relation(fields: [userId], references: [id])
+  Notification       Notification[]
+  Payment            Payment[]
+  appliedPromotionId String?
+  discountAmount     Float?         @default(0)
 
   @@map("order")
 }
@@ -302,7 +306,7 @@ model Payment {
   paymentGatewayData Json?
   isActive           Boolean       @default(true)
   createdAt          DateTime      @default(now())
-  updatedAt          DateTime      @updatedAt
+  updatedAt          DateTime       @updatedAt
   orderId            String? // Updated to link to Order
   Order              Order?        @relation(fields: [orderId], references: [id])
 
@@ -317,7 +321,7 @@ model SupportTicket {
   status      TicketStatus // Enum: open, closed, pending, etc.
   isActive    Boolean      @default(true)
   createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  updatedAt   DateTime      @updatedAt
 
   @@map("support_ticket")
 }
@@ -329,57 +333,80 @@ model Banner {
   type      String
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime  @updatedAt
 
   @@map("banner")
 }
 
 model Promotion {
-  id          String                @id @default(uuid())
-  name        String
-  image       String?
-  description String?
-  type        PromotionType // Enum: discount, flash_sale, seasonal_offer, etc.
-  startDate   DateTime
-  endDate     DateTime
-  conditions  PromotionConditions[] // Conditions for the promotion (e.g., minimum purchase amount, specific products, etc.)
-  discount    Float // Discount value (either percentage or fixed amount)
-  isActive    Boolean               @default(true)
-  createdAt   DateTime              @default(now())
-  updatedAt   DateTime              @updatedAt
+  id                String                @id @default(uuid())
+  name              String
+  code              String                @unique
+  image             String?
+  description       String?
+  type              PromotionType
+  startDate         DateTime
+  endDate           DateTime
+  discount          Float                 // Discount value (either percentage or fixed amount)
+  discountType      DiscountType          // percentage or fixed amount
+  maxDiscount       Float?                // Maximum discount limit
+  usageLimit        Int?                  // Maximum number of times the promotion can be used
+  usageLimitPerUser Int?                  // Maximum number of times a user can use this promotion
+  minPurchase       Float?                // Minimum purchase required
+  isActive          Boolean               @default(true)
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime               @updatedAt
+  conditions        PromotionConditions[] // Conditions for the promotion
+  usages            PromotionUsage[]      // Track usage of the promotion
+  appliedProducts   PromotionProduct[]    // Products this promotion applies to
+  appliedCategories PromotionCategory[]   // Categories this promotion applies to
 
   @@map("promotion")
 }
 
 model PromotionConditions {
   id            String        @id @default(uuid())
-  conditionType ConditionType // Enum: minimum_purchase_amount, specific_products, etc.
-  value         String // Condition value (e.g., "$100", "product_id", etc.)
+  conditionType ConditionType
+  value         String        // Condition value (e.g., "$100", "product_id", etc.)
+  jsonValue     Json?         // For complex conditions that need structured data
   isActive      Boolean       @default(true)
-  promotion     Promotion     @relation(fields: [promotionId], references: [id])
+  promotion     Promotion     @relation(fields: [promotionId], references: [id], onDelete: Cascade)
   promotionId   String
 
   @@map("promotion_conditions")
 }
 
-model Coupon {
-  id           String       @id @default(uuid())
-  title        String
-  code         String       @unique
-  discount     Float // The discount percentage or amount
-  discountType DiscountType // Enum: percentage, fixed_amount
-  minPurchase  Float? // Minimum purchase amount required to use the coupon
-  maxDiscount  Float? // Maximum discount amount
-  startDate    DateTime
-  expireDate   DateTime
-  status       Boolean      @default(true)
-  isActive     Boolean      @default(true)
-  couponType   CouponType? // Enum: public, private, one_time, etc.
+model PromotionUsage {
+  id          String    @id @default(uuid())
+  userId      String
+  promotionId String
+  orderId     String?
+  usedAt      DateTime  @default(now())
+  promotion   Promotion @relation(fields: [promotionId], references: [id], onDelete: Cascade)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  @@map("promotion_usage")
+}
 
-  @@map("coupon")
+model PromotionProduct {
+  id          String    @id @default(uuid())
+  promotionId String
+  productId   String
+  promotion   Promotion @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+  product     Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([promotionId, productId])
+  @@map("promotion_product")
+}
+
+model PromotionCategory {
+  id          String    @id @default(uuid())
+  promotionId String
+  categoryId  String
+  promotion   Promotion @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+  category    Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([promotionId, categoryId])
+  @@map("promotion_category")
 }
 
 enum NotificationType {
@@ -441,9 +468,22 @@ enum TicketStatus {
 enum ConditionType {
   minimum_purchase_amount
   specific_products
+  specific_categories
+  first_time_purchase
+  user_role
+  time_of_day
+  day_of_week
+  quantity_threshold
+  total_items
 }
+
 enum PromotionType {
   discount
   flash_sale
   seasonal_offer
+  bundle_deal
+  bogo             // Buy One Get One
+  free_shipping
+  new_customer
+  loyalty_reward
 }
