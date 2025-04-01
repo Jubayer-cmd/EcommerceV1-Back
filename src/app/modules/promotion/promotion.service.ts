@@ -20,6 +20,34 @@ import {
 } from './promotion.interface';
 
 /**
+ * Maps condition type string to valid ConditionType enum value
+ * @param conditionType - The condition type string from input
+ * @returns Valid ConditionType enum value
+ */
+const mapConditionType = (conditionType: string): ConditionType => {
+  // Map of input condition types to valid ConditionType enum values
+  const conditionTypeMap: Record<string, ConditionType> = {
+    first_time_purchase: ConditionType.first_time_purchase,
+    specific_products: ConditionType.specific_products,
+    specific_categories: ConditionType.specific_categories,
+    quantity_threshold: ConditionType.quantity_threshold,
+    min_quantity: ConditionType.quantity_threshold, // Map min_quantity to QUANTITY_THRESHOLD
+    minimum_purchase_amount: ConditionType.minimum_purchase_amount,
+    total_items: ConditionType.total_items,
+    user_role: ConditionType.user_role,
+    time_of_day: ConditionType.time_of_day,
+    day_of_week: ConditionType.day_of_week,
+  };
+
+  const mappedType = conditionTypeMap[conditionType.toLowerCase()];
+  if (!mappedType) {
+    throw new ApiError(400, `Invalid condition type: ${conditionType}`);
+  }
+
+  return mappedType;
+};
+
+/**
  * Creates a new promotion in the database
  * @param data - The promotion data
  * @returns The created promotion with its relations
@@ -96,7 +124,7 @@ const insertIntoDB = async (
       await tx.promotionConditions.createMany({
         data: conditions.map((condition) => ({
           promotionId: promotion.id,
-          conditionType: condition.conditionType as ConditionType,
+          conditionType: mapConditionType(condition.conditionType),
           value: condition.value,
           jsonValue: condition.jsonValue
             ? (condition.jsonValue as any)
@@ -319,7 +347,7 @@ const updateIntoDB = async (
         await tx.promotionConditions.createMany({
           data: conditions.map((condition: any) => ({
             promotionId: id,
-            conditionType: condition.conditionType as ConditionType,
+            conditionType: mapConditionType(condition.conditionType),
             value: condition.value,
             jsonValue: condition.jsonValue || null,
           })),
@@ -538,7 +566,7 @@ const validateConditions = async (
   }
 
   for (const condition of promotion.conditions) {
-    // Use a more robust approach to handle potential enum mismatches
+    // Map the condition type string to enum if needed
     const conditionTypeStr = condition.conditionType.toString();
 
     if (conditionTypeStr === 'first_time_purchase') {
