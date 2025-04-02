@@ -40,7 +40,7 @@ const router = express.Router();
  */
 router.post(
   '/create-product',
-  validateRequest(ProductValidation.createProduct), // Enable validation
+  validateRequest(ProductValidation.createProduct),
   productController.insertIntoDB,
 );
 

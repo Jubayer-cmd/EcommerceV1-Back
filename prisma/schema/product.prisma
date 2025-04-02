@@ -2,7 +2,7 @@ model Product {
   id            String            @id @default(uuid())
   name          String
   description   String?
-  image         String?           // Main product image
+  images        String[]          // Multiple product images
   price         Float             @default(0) 
   comparePrice  Float?            // Original price for showing discounts
   isActive      Boolean           @default(true)
