@@ -20,7 +20,7 @@ import { supportTicketsRoutes } from '../modules/supportTicket/supportTicket.rou
 import { bannerRoutes } from '../modules/banner/banner.route';
 import { productReviewRoutes } from '../modules/product-Review/productReview.route';
 import { promotionRoutes } from '../modules/promotion/promotion.route';
-import { unitRoutes } from '../modules/product/unit/unit.route';
+import { unitRoutes } from '../modules/unit/unit.route';
 import { attributeRoutes } from '../modules/product/attribute/attribute.route';
 
 const router = express.Router();

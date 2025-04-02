@@ -9,11 +9,14 @@ import { productService } from './product.service';
 
 const insertIntoDB = catchAsync(async (req: Request, res: Response) => {
   // Parse numeric values
-  if (req.body.basePrice) {
-    req.body.basePrice = parseFloat(req.body.basePrice);
+  if (req.body.price) {
+    req.body.price = parseFloat(req.body.price);
   }
-  if (req.body.quantity) {
-    req.body.quantity = parseInt(req.body.quantity, 10);
+  if (req.body.comparePrice) {
+    req.body.comparePrice = parseFloat(req.body.comparePrice);
+  }
+  if (req.body.stockQuantity) {
+    req.body.stockQuantity = parseInt(req.body.stockQuantity, 10);
   }
 
   // Parse variant data if present
@@ -26,6 +29,9 @@ const insertIntoDB = catchAsync(async (req: Request, res: Response) => {
         : undefined,
       stockQuantity: parseInt(variant.stockQuantity, 10),
       isDefault: variant.isDefault === 'true' || variant.isDefault === true,
+      // Make sure attributes is an object and images is an array
+      attributes: variant.attributes || {},
+      images: Array.isArray(variant.images) ? variant.images : [],
     }));
   }
 
@@ -125,6 +131,10 @@ const addProductVariant = catchAsync(async (req: Request, res: Response) => {
   if (req.body.stockQuantity) {
     req.body.stockQuantity = parseInt(req.body.stockQuantity, 10);
   }
+
+  // Make sure attributes is an object and images is an array
+  req.body.attributes = req.body.attributes || {};
+  req.body.images = Array.isArray(req.body.images) ? req.body.images : [];
 
   const result = await productService.addProductVariant(productId, req.body);
   sendResponse(res, {

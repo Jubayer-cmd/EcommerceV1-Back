@@ -1,5 +1,5 @@
 import { Unit } from '@prisma/client';
-import prisma from '../../../../utils/prisma';
+import prisma from '../../../utils/prisma';
 
 const createUnit = async (data: any): Promise<Unit> => {
   const result = await prisma.unit.create({

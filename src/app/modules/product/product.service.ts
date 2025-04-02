@@ -26,60 +26,25 @@ const insertIntoDB = async (data: any): Promise<Product> => {
         },
       });
 
-      // Create each variant
+      // Create each variant with proper structure according to schema
       for (const variant of variants) {
         const { attributes, images, ...variantData } = variant;
 
-        // Create the variant
-        const newVariant = await tx.productVariant.create({
+        // Create the variant with attributes as Json and images as string array
+        await tx.productVariant.create({
           data: {
             ...variantData,
             productId: product.id,
+            attributes: attributes || {},
+            images: images || [],
           },
         });
-
-        // Add variant attributes if present
-        if (attributes && attributes.length > 0) {
-          for (const attr of attributes) {
-            await tx.productVariantAttribute.create({
-              data: {
-                variantId: newVariant.id,
-                attributeValueId: attr.attributeValueId,
-              },
-            });
-          }
-        }
-
-        // Add variant images if present
-        if (images && images.length > 0) {
-          for (const image of images) {
-            await tx.productVariantImage.create({
-              data: {
-                ...image,
-                variantId: newVariant.id,
-              },
-            });
-          }
-        }
       }
 
       return tx.product.findUnique({
         where: { id: product.id },
         include: {
-          variants: {
-            include: {
-              attributes: {
-                include: {
-                  attributeValue: {
-                    include: {
-                      attribute: true,
-                    },
-                  },
-                },
-              },
-              images: true,
-            },
-          },
+          variants: true,
         },
       }) as Promise<Product>;
     });
@@ -122,14 +87,13 @@ const getAllProducts = async (
             },
           };
         } else if (key === 'attributeValue') {
-          // Filter by attribute value
+          // Filter by attribute value using Json field
           return {
             variants: {
               some: {
                 attributes: {
-                  some: {
-                    attributeValueId: (filterData as any)[key],
-                  },
+                  path: ['$[*]'],
+                  string_contains: (filterData as any)[key],
                 },
               },
             },
@@ -137,7 +101,7 @@ const getAllProducts = async (
         } else if (key === 'minPrice') {
           return {
             OR: [
-              { basePrice: { gte: (filterData as any)[key] } },
+              { price: { gte: (filterData as any)[key] } },
               {
                 variants: {
                   some: { price: { gte: (filterData as any)[key] } },
@@ -148,7 +112,7 @@ const getAllProducts = async (
         } else if (key === 'maxPrice') {
           return {
             OR: [
-              { basePrice: { lte: (filterData as any)[key] } },
+              { price: { lte: (filterData as any)[key] } },
               {
                 variants: {
                   some: { price: { lte: (filterData as any)[key] } },
@@ -177,18 +141,6 @@ const getAllProducts = async (
       variants: {
         where: {
           isActive: true,
-        },
-        include: {
-          attributes: {
-            include: {
-              attributeValue: {
-                include: {
-                  attribute: true,
-                },
-              },
-            },
-          },
-          images: true,
         },
       },
     },
@@ -352,55 +304,16 @@ const addProductVariant = async (
 ): Promise<ProductVariant> => {
   const { attributes, images, ...variantData } = data;
 
-  return await prisma.$transaction(async (tx) => {
-    // Create the variant
-    const newVariant = await tx.productVariant.create({
-      data: {
-        ...variantData,
-        productId,
-      },
-    });
-
-    // Add variant attributes if present
-    if (attributes && attributes.length > 0) {
-      for (const attr of attributes) {
-        await tx.productVariantAttribute.create({
-          data: {
-            variantId: newVariant.id,
-            attributeValueId: attr.attributeValueId,
-          },
-        });
-      }
-    }
-
-    // Add variant images if present
-    if (images && images.length > 0) {
-      for (const image of images) {
-        await tx.productVariantImage.create({
-          data: {
-            ...image,
-            variantId: newVariant.id,
-          },
-        });
-      }
-    }
-
-    return tx.productVariant.findUnique({
-      where: { id: newVariant.id },
-      include: {
-        attributes: {
-          include: {
-            attributeValue: {
-              include: {
-                attribute: true,
-              },
-            },
-          },
-        },
-        images: true,
-      },
-    }) as Promise<ProductVariant>;
+  const newVariant = await prisma.productVariant.create({
+    data: {
+      ...variantData,
+      productId,
+      attributes: attributes || {},
+      images: images || [],
+    },
   });
+
+  return newVariant;
 };
 
 const updateProductVariant = async (
@@ -412,14 +325,6 @@ const updateProductVariant = async (
       id,
     },
     data: payload,
-    include: {
-      attributes: {
-        include: {
-          attributeValue: true,
-        },
-      },
-      images: true,
-    },
   });
   return result;
 };

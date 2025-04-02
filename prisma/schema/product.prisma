@@ -3,18 +3,19 @@ model Product {
   name          String
   description   String?
   image         String?           // Main product image
-  basePrice     Float             @default(0) // Base price (can be overridden by variant)
+  price         Float             @default(0) 
+  comparePrice  Float?            // Original price for showing discounts
   isActive      Boolean           @default(true)
   brand         Brand?            @relation(fields: [brandId], references: [id])
   brandId       String?
   subCategory   SubCategory?      @relation(fields: [subCategoryId], references: [id])
   subCategoryId String?
-  stock         String?
-  quantity      Int               // Total quantity across all variants
-  hasVariants   Boolean           @default(false) // Flag if product has variants
-  variants      ProductVariant[]  
+  stockQuantity Int               @default(0)
+  sku           String?           // Stock Keeping Unit
   unit          Unit?             @relation(fields: [unitId], references: [id])
   unitId        String?
+  hasVariants   Boolean           @default(false)
+  variants      ProductVariant[]
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
   OrderProduct  OrderProduct[]
@@ -30,72 +31,26 @@ model Product {
   @@map("product")
 }
 
-model ProductAttribute {
-  id          String                 @id @default(uuid())
-  name        String                 // e.g., "Size", "Color", "Material"
-  description String?
-  isActive    Boolean                @default(true)
-  createdAt   DateTime               @default(now())
-  updatedAt   DateTime               @updatedAt
-  values      ProductAttributeValue[]
-
-  @@map("product_attribute")
-}
-
-model ProductAttributeValue {
-  id          String                   @id @default(uuid())
-  value       String                   // e.g., "Red", "Blue", "XL", "Cotton"
-  attribute   ProductAttribute         @relation(fields: [attributeId], references: [id])
-  attributeId String
-  isActive    Boolean                  @default(true)
-  createdAt   DateTime                 @default(now())
-  updatedAt   DateTime                 @updatedAt
-  variants    ProductVariantAttribute[]
-
-  @@map("product_attribute_value")
-}
-
 model ProductVariant {
-  id            String                    @id @default(uuid())
-  sku           String                    @unique  // Stock Keeping Unit
-  product       Product                   @relation(fields: [productId], references: [id])
+  id            String    @id @default(uuid())
+  sku           String    @unique  // Stock Keeping Unit
+  product       Product   @relation(fields: [productId], references: [id])
   productId     String
-  price         Float                     // Variant-specific price
-  comparePrice  Float?                    // Original price for sale/discount display
-  stockQuantity Int                       @default(0)
-  isDefault     Boolean                   @default(false)
-  isActive      Boolean                   @default(true)
-  createdAt     DateTime                  @default(now())
-  updatedAt     DateTime                  @updatedAt
-  attributes    ProductVariantAttribute[]
-  images        ProductVariantImage[]
+  name          String?   // Variant name (e.g., "Red XL") - made optional
+  price         Float     // Variant-specific price
+  comparePrice  Float?    // Original price for sale/discount display
+  stockQuantity Int       @default(0)
+  isDefault     Boolean   @default(false)
+  isActive      Boolean   @default(true)
+  // Store attributes as JSON instead of separate tables
+  attributes    Json?     // e.g., { "color": "Red", "size": "XL" } - made optional
+  images        String[]  // Array of image URLs
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
   cartItems     CartItem[]
   orderItems    OrderProduct[]
   
   @@map("product_variant")
-}
-
-model ProductVariantAttribute {
-  id                  String                 @id @default(uuid())
-  variant             ProductVariant         @relation(fields: [variantId], references: [id])
-  variantId           String
-  attributeValue      ProductAttributeValue  @relation(fields: [attributeValueId], references: [id])
-  attributeValueId    String
-
-  @@unique([variantId, attributeValueId])
-  @@map("product_variant_attribute")
-}
-
-model ProductVariantImage {
-  id        String        @id @default(uuid())
-  url       String
-  isDefault Boolean       @default(false)
-  variant   ProductVariant @relation(fields: [variantId], references: [id])
-  variantId String
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
-
-  @@map("product_variant_image")
 }
 
 model Unit {

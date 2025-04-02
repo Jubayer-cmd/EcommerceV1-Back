@@ -1,6 +1,6 @@
 import express from 'express';
 import { unitController } from './unit.controller';
-import validateRequest from '../../../middleware/validateRequest';
+import validateRequest from '../../middleware/validateRequest';
 import { UnitValidation } from './unit.validation';
 
 const router = express.Router();
