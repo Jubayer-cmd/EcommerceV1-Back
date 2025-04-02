@@ -10,6 +10,7 @@ export interface IPromotionCondition {
   conditionType: ConditionType;
   value: string;
   jsonValue?: Record<string, unknown> | null;
+  isActive?: boolean;
 }
 
 export interface ICreatePromotion {
@@ -95,20 +96,15 @@ export interface IAppliedCategoryResponse {
 
 export interface IPromotionWithRelations extends Promotion {
   conditions?: IPromotionConditionResponse[];
-  appliedProducts?: IAppliedProductResponse[]; // Changed from promotionProduct
-  appliedCategories?: IAppliedCategoryResponse[]; // Changed from promotionCategory
+  appliedProducts?: IAppliedProductResponse[];
+  appliedCategories?: IAppliedCategoryResponse[];
   usages?: {
-    // Changed from promotionUsage
     id: string;
     userId: string;
     promotionId: string;
     orderId?: string | null;
     usedAt: Date;
   }[];
-  maxDiscount?: number | null;
-  usageLimit?: number | null;
-  usageLimitPerUser?: number | null;
-  minPurchase?: number | null;
 }
 
 export interface IPromotionResponse {

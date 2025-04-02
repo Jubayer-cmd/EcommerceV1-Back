@@ -75,19 +75,45 @@ const insertIntoDB = async (
   } = data;
 
   console.log('Promotion data:', data);
+  console.log(typeof discount, discount);
 
   // Parse JSON strings if needed
   const conditions = parseJsonIfString(rawConditions);
   const productIds = parseJsonIfString(rawProductIds);
   const categoryIds = parseJsonIfString(rawCategoryIds);
 
-  const discountFloat = parseFloat(discount);
-  const maxDiscountFloat = maxDiscount ? parseFloat(maxDiscount) : null;
-  const minPurchaseFloat = minPurchase ? parseFloat(minPurchase) : null;
-  const usageLimitFloat = usageLimit ? parseFloat(usageLimit) : null;
-  const usageLimitPerUserFloat = usageLimitPerUser
-    ? parseFloat(usageLimitPerUser)
-    : null;
+  // Force type conversion for ALL numeric fields
+  // This ensures Prisma receives the correct types
+  const discountFloat =
+    typeof discount === 'number' ? discount : parseFloat(String(discount));
+  const maxDiscountFloat =
+    maxDiscount !== undefined && maxDiscount !== null
+      ? parseFloat(String(maxDiscount))
+      : null;
+  const minPurchaseFloat =
+    minPurchase !== undefined && minPurchase !== null
+      ? parseFloat(String(minPurchase))
+      : null;
+  const usageLimitInt =
+    usageLimit !== undefined && usageLimit !== null
+      ? parseInt(String(usageLimit), 10)
+      : null;
+  const usageLimitPerUserInt =
+    usageLimitPerUser !== undefined && usageLimitPerUser !== null
+      ? parseInt(String(usageLimitPerUser), 10)
+      : null;
+
+  // Validate all conversions
+  if (isNaN(discountFloat))
+    throw new ApiError(400, 'Discount must be a valid number');
+  if (maxDiscountFloat !== null && isNaN(maxDiscountFloat))
+    throw new ApiError(400, 'Max discount must be a valid number');
+  if (minPurchaseFloat !== null && isNaN(minPurchaseFloat))
+    throw new ApiError(400, 'Min purchase must be a valid number');
+  if (usageLimitInt !== null && isNaN(usageLimitInt))
+    throw new ApiError(400, 'Usage limit must be a valid number');
+  if (usageLimitPerUserInt !== null && isNaN(usageLimitPerUserInt))
+    throw new ApiError(400, 'Usage limit per user must be a valid number');
 
   // Check if a promotion with this code already exists
   const existingPromotion = await prisma.promotion.findFirst({
@@ -112,29 +138,40 @@ const insertIntoDB = async (
         endDate: new Date(endDate),
         discount: discountFloat,
         discountType: discountType as DiscountType,
-        maxDiscount: maxDiscountFloat,
-        usageLimit: usageLimitFloat,
-        usageLimitPerUser: usageLimitPerUserFloat,
-        minPurchase: minPurchaseFloat,
+        maxDiscount: maxDiscountFloat, // Use our converted float value
+        usageLimit: usageLimitInt, // Use our converted int value
+        usageLimitPerUser: usageLimitPerUserInt, // Use our converted int value
+        minPurchase: minPurchaseFloat, // Use our converted float value
       },
     });
 
     // Insert promotion conditions if provided
-    if (conditions && Array.isArray(conditions) && conditions.length > 0) {
-      await tx.promotionConditions.createMany({
-        data: conditions.map((condition) => ({
-          promotionId: promotion.id,
-          conditionType: mapConditionType(condition.conditionType),
-          value: condition.value,
-          jsonValue: condition.jsonValue
-            ? (condition.jsonValue as any)
-            : Prisma.JsonNull,
-        })),
-      });
+    if (Array.isArray(conditions) && conditions.length > 0) {
+      try {
+        await tx.promotionConditions.createMany({
+          data: conditions.map((condition) => ({
+            promotionId: promotion.id,
+            conditionType: mapConditionType(condition.conditionType),
+            value: condition.value,
+            jsonValue: condition.jsonValue
+              ? (condition.jsonValue as any)
+              : Prisma.JsonNull,
+            isActive:
+              condition.isActive !== undefined ? condition.isActive : true,
+          })),
+        });
+      } catch (error) {
+        console.error('Error creating promotion conditions:', error);
+        throw new ApiError(
+          400,
+          'Error processing promotion conditions: ' +
+            (error instanceof Error ? error.message : 'Unknown error'),
+        );
+      }
     }
 
     // Link products if provided
-    if (productIds && Array.isArray(productIds) && productIds.length > 0) {
+    if (Array.isArray(productIds) && productIds.length > 0) {
       await tx.promotionProduct.createMany({
         data: productIds.map((productId) => ({
           promotionId: promotion.id,
@@ -144,7 +181,7 @@ const insertIntoDB = async (
     }
 
     // Link categories if provided
-    if (categoryIds && Array.isArray(categoryIds) && categoryIds.length > 0) {
+    if (Array.isArray(categoryIds) && categoryIds.length > 0) {
       await tx.promotionCategory.createMany({
         data: categoryIds.map((categoryId) => ({
           promotionId: promotion.id,
@@ -296,9 +333,9 @@ const updateIntoDB = async (
     usageLimitPerUser,
     minPurchase,
     isActive,
-    conditions,
-    productIds,
-    categoryIds,
+    conditions: rawConditions,
+    productIds: rawProductIds,
+    categoryIds: rawCategoryIds,
   } = payload;
 
   // Check if promotion exists
@@ -310,6 +347,11 @@ const updateIntoDB = async (
     throw new ApiError(404, 'Promotion not found');
   }
 
+  // Parse the complex fields that might be JSON strings
+  const conditions = parseJsonIfString(rawConditions);
+  const productIds = parseJsonIfString(rawProductIds);
+  const categoryIds = parseJsonIfString(rawCategoryIds);
+
   const updateData: any = {};
 
   // Only include fields that are provided in the payload
@@ -319,14 +361,63 @@ const updateIntoDB = async (
   if (type !== undefined) updateData.type = type;
   if (startDate !== undefined) updateData.startDate = new Date(startDate);
   if (endDate !== undefined) updateData.endDate = new Date(endDate);
-  if (discount !== undefined) updateData.discount = discount;
+
+  // Force type conversion for ALL numeric fields in update too
+  if (discount !== undefined) {
+    const discountFloat =
+      typeof discount === 'number' ? discount : parseFloat(String(discount));
+    if (isNaN(discountFloat))
+      throw new ApiError(400, 'Discount must be a valid number');
+    updateData.discount = discountFloat;
+  }
+
   if (discountType !== undefined) updateData.discountType = discountType;
-  if (maxDiscount !== undefined) updateData.maxDiscount = maxDiscount;
-  if (usageLimit !== undefined) updateData.usageLimit = usageLimit;
-  if (usageLimitPerUser !== undefined)
-    updateData.usageLimitPerUser = usageLimitPerUser;
-  if (minPurchase !== undefined) updateData.minPurchase = minPurchase;
-  if (isActive !== undefined) updateData.isActive = isActive;
+
+  if (maxDiscount !== undefined) {
+    if (maxDiscount === null) {
+      updateData.maxDiscount = null;
+    } else {
+      const maxDiscountFloat = parseFloat(String(maxDiscount));
+      if (isNaN(maxDiscountFloat))
+        throw new ApiError(400, 'Max discount must be a valid number');
+      updateData.maxDiscount = maxDiscountFloat;
+    }
+  }
+
+  if (usageLimit !== undefined) {
+    if (usageLimit === null) {
+      updateData.usageLimit = null;
+    } else {
+      const usageLimitInt = parseInt(String(usageLimit), 10);
+      if (isNaN(usageLimitInt))
+        throw new ApiError(400, 'Usage limit must be a valid number');
+      updateData.usageLimit = usageLimitInt;
+    }
+  }
+
+  if (usageLimitPerUser !== undefined) {
+    if (usageLimitPerUser === null) {
+      updateData.usageLimitPerUser = null;
+    } else {
+      const usageLimitPerUserInt = parseInt(String(usageLimitPerUser), 10);
+      if (isNaN(usageLimitPerUserInt))
+        throw new ApiError(400, 'Usage limit per user must be a valid number');
+      updateData.usageLimitPerUser = usageLimitPerUserInt;
+    }
+  }
+
+  if (minPurchase !== undefined) {
+    if (minPurchase === null) {
+      updateData.minPurchase = null;
+    } else {
+      const minPurchaseFloat = parseFloat(String(minPurchase));
+      if (isNaN(minPurchaseFloat))
+        throw new ApiError(400, 'Min purchase must be a valid number');
+      updateData.minPurchase = minPurchaseFloat;
+    }
+  }
+
+  if (isActive !== undefined) updateData.isActive = isActive === true;
 
   const result = await prisma.$transaction(async (tx) => {
     // Update promotion
@@ -336,32 +427,43 @@ const updateIntoDB = async (
     });
 
     // Update conditions if provided
-    if (conditions !== undefined) {
+    if (rawConditions !== undefined) {
       // Delete existing conditions
       await tx.promotionConditions.deleteMany({
         where: { promotionId: id },
       });
 
-      // Create new conditions
-      if (conditions.length > 0) {
-        await tx.promotionConditions.createMany({
-          data: conditions.map((condition: any) => ({
-            promotionId: id,
-            conditionType: mapConditionType(condition.conditionType),
-            value: condition.value,
-            jsonValue: condition.jsonValue || null,
-          })),
-        });
+      // Create new conditions - ensure conditions is an array before mapping
+      if (Array.isArray(conditions) && conditions.length > 0) {
+        try {
+          await tx.promotionConditions.createMany({
+            data: conditions.map((condition: any) => ({
+              promotionId: id,
+              conditionType: mapConditionType(condition.conditionType),
+              value: condition.value,
+              jsonValue: condition.jsonValue || null,
+              isActive:
+                condition.isActive !== undefined ? condition.isActive : true,
+            })),
+          });
+        } catch (error) {
+          console.error('Error creating promotion conditions:', error);
+          throw new ApiError(
+            400,
+            'Error processing promotion conditions: ' +
+              (error instanceof Error ? error.message : 'Unknown error'),
+          );
+        }
       }
     }
 
     // Update product associations if provided
-    if (productIds !== undefined) {
+    if (rawProductIds !== undefined) {
       await tx.promotionProduct.deleteMany({
         where: { promotionId: id },
       });
 
-      if (productIds.length > 0) {
+      if (Array.isArray(productIds) && productIds.length > 0) {
         await tx.promotionProduct.createMany({
           data: productIds.map((productId: string) => ({
             promotionId: id,
@@ -372,12 +474,12 @@ const updateIntoDB = async (
     }
 
     // Update category associations if provided
-    if (categoryIds !== undefined) {
+    if (rawCategoryIds !== undefined) {
       await tx.promotionCategory.deleteMany({
         where: { promotionId: id },
       });
 
-      if (categoryIds.length > 0) {
+      if (Array.isArray(categoryIds) && categoryIds.length > 0) {
         await tx.promotionCategory.createMany({
           data: categoryIds.map((categoryId: string) => ({
             promotionId: id,
@@ -551,7 +653,7 @@ const calculateDiscountAmount = (
 const validateConditions = async (
   promotion: Promotion & {
     conditions?: IPromotionConditionResponse[];
-    usages: any[];
+    usages?: any[]; // Changed from required to optional
     usageLimit?: number | null;
     usageLimitPerUser?: number | null;
     minPurchase?: number | null;
@@ -708,11 +810,20 @@ const recordPromotionUsage = async (
 
 // Helper function to parse JSON strings
 const parseJsonIfString = (value: any): any => {
+  if (value === undefined || value === null) {
+    return value;
+  }
+
   if (typeof value === 'string') {
     try {
       return JSON.parse(value);
     } catch (error) {
       console.error('Error parsing JSON string:', error);
+      // If it's supposed to be an array but parsing failed, return empty array
+      if (value.trim().startsWith('[') || value.trim() === '') {
+        return [];
+      }
+      // Return original value if parsing fails
       return value;
     }
   }
