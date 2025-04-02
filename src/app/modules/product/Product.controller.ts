@@ -8,30 +8,63 @@ import { productFilterableFields } from './product.constants';
 import { productService } from './product.service';
 
 const insertIntoDB = catchAsync(async (req: Request, res: Response) => {
-  // Parse numeric values
-  if (req.body.price) {
+  // Parse numeric values if they're strings (from form data)
+  if (req.body.price && typeof req.body.price === 'string') {
     req.body.price = parseFloat(req.body.price);
   }
-  if (req.body.comparePrice) {
+  if (req.body.comparePrice && typeof req.body.comparePrice === 'string') {
     req.body.comparePrice = parseFloat(req.body.comparePrice);
   }
-  if (req.body.stockQuantity) {
+  if (req.body.stockQuantity && typeof req.body.stockQuantity === 'string') {
     req.body.stockQuantity = parseInt(req.body.stockQuantity, 10);
+  }
+
+  // Convert hasVariants to boolean if it's a string
+  if (req.body.hasVariants) {
+    req.body.hasVariants =
+      req.body.hasVariants === 'true' || req.body.hasVariants === true;
+  }
+
+  // Additional validation: if hasVariants is true, variants must be present
+  if (
+    req.body.hasVariants &&
+    (!req.body.variants || !req.body.variants.length)
+  ) {
+    return sendResponse(res, {
+      statusCode: httpStatus.BAD_REQUEST,
+      success: false,
+      message: 'Variants are required when hasVariants is true',
+    });
   }
 
   // Parse variant data if present
   if (req.body.variants && Array.isArray(req.body.variants)) {
     req.body.variants = req.body.variants.map((variant: any) => ({
       ...variant,
-      price: parseFloat(variant.price),
+      price:
+        typeof variant.price === 'string'
+          ? parseFloat(variant.price)
+          : variant.price,
       comparePrice: variant.comparePrice
-        ? parseFloat(variant.comparePrice)
+        ? typeof variant.comparePrice === 'string'
+          ? parseFloat(variant.comparePrice)
+          : variant.comparePrice
         : undefined,
-      stockQuantity: parseInt(variant.stockQuantity, 10),
+      stockQuantity:
+        typeof variant.stockQuantity === 'string'
+          ? parseInt(variant.stockQuantity, 10)
+          : variant.stockQuantity,
       isDefault: variant.isDefault === 'true' || variant.isDefault === true,
       // Make sure attributes is an object and images is an array
-      attributes: variant.attributes || {},
-      images: Array.isArray(variant.images) ? variant.images : [],
+      attributes:
+        typeof variant.attributes === 'string'
+          ? JSON.parse(variant.attributes)
+          : variant.attributes || {},
+      images: Array.isArray(variant.images)
+        ? variant.images
+        : variant.images
+        ? [variant.images]
+        : [],
     }));
   }
 
@@ -101,11 +134,18 @@ const deleteFromDB = catchAsync(async (req: Request, res: Response) => {
 
 const updateIntoDB = catchAsync(async (req: Request, res: Response) => {
   // Handle numeric values
-  if (req.body.basePrice) {
-    req.body.basePrice = parseFloat(req.body.basePrice);
+  if (req.body.price && typeof req.body.price === 'string') {
+    req.body.price = parseFloat(req.body.price);
   }
-  if (req.body.quantity) {
-    req.body.quantity = parseInt(req.body.quantity, 10);
+  if (req.body.comparePrice && typeof req.body.comparePrice === 'string') {
+    req.body.comparePrice = parseFloat(req.body.comparePrice);
+  }
+  if (req.body.stockQuantity && typeof req.body.stockQuantity === 'string') {
+    req.body.stockQuantity = parseInt(req.body.stockQuantity, 10);
+  }
+  if (req.body.hasVariants) {
+    req.body.hasVariants =
+      req.body.hasVariants === 'true' || req.body.hasVariants === true;
   }
 
   const result = await productService.updateIntoDB(req.params.id, req.body);
@@ -121,20 +161,34 @@ const updateIntoDB = catchAsync(async (req: Request, res: Response) => {
 const addProductVariant = catchAsync(async (req: Request, res: Response) => {
   const { productId } = req.params;
 
-  // Parse numeric values
-  if (req.body.price) {
+  // Parse numeric values if they're strings
+  if (req.body.price && typeof req.body.price === 'string') {
     req.body.price = parseFloat(req.body.price);
   }
-  if (req.body.comparePrice) {
+  if (req.body.comparePrice && typeof req.body.comparePrice === 'string') {
     req.body.comparePrice = parseFloat(req.body.comparePrice);
   }
-  if (req.body.stockQuantity) {
+  if (req.body.stockQuantity && typeof req.body.stockQuantity === 'string') {
     req.body.stockQuantity = parseInt(req.body.stockQuantity, 10);
   }
 
-  // Make sure attributes is an object and images is an array
-  req.body.attributes = req.body.attributes || {};
-  req.body.images = Array.isArray(req.body.images) ? req.body.images : [];
+  // Make sure attributes is an object (parse if it's a JSON string)
+  if (typeof req.body.attributes === 'string') {
+    try {
+      req.body.attributes = JSON.parse(req.body.attributes);
+    } catch (e) {
+      req.body.attributes = {};
+    }
+  } else {
+    req.body.attributes = req.body.attributes || {};
+  }
+
+  // Make sure images is an array
+  req.body.images = Array.isArray(req.body.images)
+    ? req.body.images
+    : req.body.images
+    ? [req.body.images]
+    : [];
 
   const result = await productService.addProductVariant(productId, req.body);
   sendResponse(res, {

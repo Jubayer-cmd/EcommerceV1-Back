@@ -36,17 +36,35 @@ const createProduct = z.object({
       .number({
         required_error: 'Price is required',
       })
+      .nonnegative('Price must be non-negative'),
+    comparePrice: z
+      .number()
+      .nonnegative('Compare price must be non-negative')
       .optional(),
-    comparePrice: z.number().optional(),
     categoryId: z.string().optional(),
     brandId: z.string().optional(),
     subCategoryId: z.string().optional(),
-    stockQuantity: z.number().optional(),
+    stockQuantity: z
+      .number()
+      .nonnegative('Stock quantity must be non-negative')
+      .int('Stock quantity must be a whole number')
+      .optional(),
     sku: z.string().optional(),
     hasVariants: z.boolean().optional().default(false),
     unitId: z.string().optional(),
     // Only require variants if hasVariants is true
-    variants: z.array(productVariantSchema).optional(),
+    variants: z
+      .array(productVariantSchema)
+      .optional()
+      .refine(
+        (data) => {
+          // This refinement will be checked in the controller since it needs access to hasVariants
+          return true;
+        },
+        {
+          message: 'Variants are required when hasVariants is true',
+        },
+      ),
   }),
 });
 
@@ -55,15 +73,23 @@ const updateProduct = z.object({
     name: z.string().optional(),
     description: z.string().optional(),
     image: z.string().optional(),
-    price: z.number().optional(),
-    comparePrice: z.number().optional(),
+    price: z.number().nonnegative('Price must be non-negative').optional(),
+    comparePrice: z
+      .number()
+      .nonnegative('Compare price must be non-negative')
+      .optional(),
     categoryId: z.string().optional(),
     brandId: z.string().optional(),
     subCategoryId: z.string().optional(),
-    stockQuantity: z.number().optional(),
+    stockQuantity: z
+      .number()
+      .nonnegative('Stock quantity must be non-negative')
+      .int('Stock quantity must be a whole number')
+      .optional(),
     sku: z.string().optional(),
     hasVariants: z.boolean().optional(),
     unitId: z.string().optional(),
+    isActive: z.boolean().optional(),
   }),
 });
 
@@ -77,9 +103,16 @@ const updateProductVariant = z.object({
   body: z.object({
     name: z.string().optional(),
     sku: z.string().optional(),
-    price: z.number().optional(),
-    comparePrice: z.number().optional(),
-    stockQuantity: z.number().optional(),
+    price: z.number().nonnegative('Price must be non-negative').optional(),
+    comparePrice: z
+      .number()
+      .nonnegative('Compare price must be non-negative')
+      .optional(),
+    stockQuantity: z
+      .number()
+      .nonnegative('Stock quantity must be non-negative')
+      .int('Stock quantity must be a whole number')
+      .optional(),
     isDefault: z.boolean().optional(),
     isActive: z.boolean().optional(),
     attributes: z.record(z.string(), z.any()).optional(),

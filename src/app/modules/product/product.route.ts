@@ -25,7 +25,7 @@ const router = express.Router();
  *               description:
  *                 type: string
  *                 example: "Product Description"
- *               basePrice:
+ *               price:
  *                 type: number
  *                 example: 99.99
  *               hasVariants:
@@ -40,7 +40,7 @@ const router = express.Router();
  */
 router.post(
   '/create-product',
-  // validateRequest(ProductValidation.createProduct),
+  validateRequest(ProductValidation.createProduct), // Enable validation
   productController.insertIntoDB,
 );
 
