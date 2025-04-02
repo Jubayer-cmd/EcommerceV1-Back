@@ -1,0 +1,42 @@
+model User {
+  id               String            @id @default(uuid())
+  name             String
+  email            String            @unique
+  password         String
+  image            String?
+  role             Role?             @default(user)
+  phone            String?           @unique
+  address          String?
+  isActive         Boolean           @default(true)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  reviews          UserReview[]
+  orders           Order[]
+  Blog             Blog[]
+  Booking          Booking[]
+  Notification     Notification[]
+  Cart             Cart? 
+  Wishlist         Wishlist[]
+  Payment          Payment[]
+  productReviews   ProductReview[]
+  productQuestions ProductQuestion[]
+
+  @@map("user")
+}
+
+model UserFile {
+  id          String   @id @default(uuid())
+  title       String
+  url         String
+  asset_id    String
+  format      String
+  width       Int
+  height      Int
+  bytes       Int
+  description String?  @default("")
+  isActive    Boolean  @default(true)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  @@map("user_files")
+}

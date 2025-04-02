@@ -1,0 +1,141 @@
+model Product {
+  id            String            @id @default(uuid())
+  name          String
+  description   String?
+  image         String?           // Main product image
+  basePrice     Float             @default(0) // Base price (can be overridden by variant)
+  isActive      Boolean           @default(true)
+  brand         Brand?            @relation(fields: [brandId], references: [id])
+  brandId       String?
+  subCategory   SubCategory?      @relation(fields: [subCategoryId], references: [id])
+  subCategoryId String?
+  stock         String?
+  quantity      Int               // Total quantity across all variants
+  hasVariants   Boolean           @default(false) // Flag if product has variants
+  variants      ProductVariant[]  
+  unit          Unit?             @relation(fields: [unitId], references: [id])
+  unitId        String?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  OrderProduct  OrderProduct[]
+  Category      Category?         @relation(fields: [categoryId], references: [id])
+  categoryId    String?
+  cartItems     CartItem[]
+  wishlists     Wishlist[]
+  reviews       ProductReview[]
+  questions     ProductQuestion[]
+  Notification  Notification[]
+  promotions    PromotionProduct[]
+
+  @@map("product")
+}
+
+model ProductAttribute {
+  id          String                 @id @default(uuid())
+  name        String                 // e.g., "Size", "Color", "Material"
+  description String?
+  isActive    Boolean                @default(true)
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @updatedAt
+  values      ProductAttributeValue[]
+
+  @@map("product_attribute")
+}
+
+model ProductAttributeValue {
+  id          String                   @id @default(uuid())
+  value       String                   // e.g., "Red", "Blue", "XL", "Cotton"
+  attribute   ProductAttribute         @relation(fields: [attributeId], references: [id])
+  attributeId String
+  isActive    Boolean                  @default(true)
+  createdAt   DateTime                 @default(now())
+  updatedAt   DateTime                 @updatedAt
+  variants    ProductVariantAttribute[]
+
+  @@map("product_attribute_value")
+}
+
+model ProductVariant {
+  id            String                    @id @default(uuid())
+  sku           String                    @unique  // Stock Keeping Unit
+  product       Product                   @relation(fields: [productId], references: [id])
+  productId     String
+  price         Float                     // Variant-specific price
+  comparePrice  Float?                    // Original price for sale/discount display
+  stockQuantity Int                       @default(0)
+  isDefault     Boolean                   @default(false)
+  isActive      Boolean                   @default(true)
+  createdAt     DateTime                  @default(now())
+  updatedAt     DateTime                  @updatedAt
+  attributes    ProductVariantAttribute[]
+  images        ProductVariantImage[]
+  cartItems     CartItem[]
+  orderItems    OrderProduct[]
+  
+  @@map("product_variant")
+}
+
+model ProductVariantAttribute {
+  id                  String                 @id @default(uuid())
+  variant             ProductVariant         @relation(fields: [variantId], references: [id])
+  variantId           String
+  attributeValue      ProductAttributeValue  @relation(fields: [attributeValueId], references: [id])
+  attributeValueId    String
+
+  @@unique([variantId, attributeValueId])
+  @@map("product_variant_attribute")
+}
+
+model ProductVariantImage {
+  id        String        @id @default(uuid())
+  url       String
+  isDefault Boolean       @default(false)
+  variant   ProductVariant @relation(fields: [variantId], references: [id])
+  variantId String
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@map("product_variant_image")
+}
+
+model Unit {
+  id          String    @id @default(uuid())
+  name        String    
+  shortName   String    
+  description String?
+  isActive    Boolean   @default(true)
+  products    Product[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("unit")
+}
+
+model ProductReview {
+  id        String   @id @default(uuid())
+  rating    Int
+  content   String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime  @updatedAt
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@map("product_review")
+}
+
+model ProductQuestion {
+  id        String   @id @default(uuid())
+  question  String
+  answer    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime  @updatedAt
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@map("product_question")
+}

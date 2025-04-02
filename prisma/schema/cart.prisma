@@ -1,0 +1,34 @@
+model Cart {
+  id        String     @id @default(uuid())
+  user      User       @relation(fields: [userId], references: [id])
+  userId    String     @unique
+  createdAt DateTime   @default(now())
+  updatedAt DateTime    @updatedAt
+  items     CartItem[]
+
+  @@map("cart")
+}
+
+model CartItem {
+  id                String          @id @default(uuid())
+  cart              Cart            @relation(fields: [cartId], references: [id])
+  cartId            String
+  product           Product         @relation(fields: [productId], references: [id])
+  productId         String
+  variant           ProductVariant? @relation(fields: [productVariantId], references: [id])
+  productVariantId  String?
+  quantity          Int
+
+  @@map("cart_item")
+}
+
+model Wishlist {
+  id        String    @id @default(uuid())
+  user      User      @relation(fields: [userId], references: [id])
+  userId    String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime   @updatedAt
+  products  Product[]
+
+  @@map("wishlist")
+}

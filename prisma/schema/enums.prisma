@@ -1,0 +1,78 @@
+enum NotificationType {
+  promotional
+  order
+  product
+  service
+}
+
+enum CouponType {
+  default
+  first_order
+}
+
+enum DiscountType {
+  percentage
+  fixed_amount
+}
+
+enum PaymentStatus {
+  pending
+  succeeded
+  failed
+  refunded
+}
+
+enum PaymentMethod {
+  online
+  COD
+}
+
+enum Role {
+  superAdmin
+  admin
+  user
+}
+
+enum OrderStatus {
+  pending
+  confirmed
+  shipped
+  delivered
+  canceled
+}
+
+enum BookingStatus {
+  pending
+  confirmed
+  canceled
+  completed
+}
+
+enum TicketStatus {
+  open
+  closed
+  pending
+}
+
+enum ConditionType {
+  minimum_purchase_amount
+  specific_products
+  specific_categories
+  first_time_purchase
+  user_role
+  time_of_day
+  day_of_week
+  quantity_threshold
+  total_items
+}
+
+enum PromotionType {
+  discount
+  flash_sale
+  seasonal_offer
+  bundle_deal
+  bogo
+  free_shipping
+  new_customer
+  loyalty_reward
+}

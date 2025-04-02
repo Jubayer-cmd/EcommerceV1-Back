@@ -18,9 +18,10 @@ import { notificationRoutes } from '../modules/notifications/notification.route'
 import { paymentRoutes } from '../modules/payment/payment.route';
 import { supportTicketsRoutes } from '../modules/supportTicket/supportTicket.route';
 import { bannerRoutes } from '../modules/banner/banner.route';
-
 import { productReviewRoutes } from '../modules/product-Review/productReview.route';
 import { promotionRoutes } from '../modules/promotion/promotion.route';
+import { unitRoutes } from '../modules/product/unit/unit.route';
+import { attributeRoutes } from '../modules/product/attribute/attribute.route';
 
 const router = express.Router();
 
@@ -51,7 +52,7 @@ const moduleRoutes = [
   },
 
   {
-    path: '/',
+    path: '/products',
     route: productRoutes,
   },
 
@@ -121,6 +122,14 @@ const moduleRoutes = [
   {
     path: '/support',
     route: supportTicketsRoutes,
+  },
+  {
+    path: '/units',
+    route: unitRoutes,
+  },
+  {
+    path: '/attributes',
+    route: attributeRoutes,
   },
 ];
 

@@ -1,0 +1,70 @@
+model Promotion {
+  id                String                @id @default(uuid())
+  name              String
+  code              String                @unique
+  image             String?
+  description       String?
+  type              PromotionType
+  startDate         DateTime
+  endDate           DateTime
+  discount          Float
+  discountType      DiscountType
+  maxDiscount       Float?
+  usageLimit        Int?
+  usageLimitPerUser Int?
+  minPurchase       Float?
+  isActive          Boolean               @default(true)
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime               @updatedAt
+  conditions        PromotionConditions[]
+  usages            PromotionUsage[]
+  appliedProducts   PromotionProduct[]
+  appliedCategories PromotionCategory[]
+
+  @@map("promotion")
+}
+
+model PromotionConditions {
+  id            String        @id @default(uuid())
+  conditionType ConditionType
+  value         String
+  jsonValue     Json?
+  isActive      Boolean       @default(true)
+  promotion     Promotion     @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+  promotionId   String
+
+  @@map("promotion_conditions")
+}
+
+model PromotionUsage {
+  id          String    @id @default(uuid())
+  userId      String
+  promotionId String
+  orderId     String?
+  usedAt      DateTime  @default(now())
+  promotion   Promotion @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+
+  @@map("promotion_usage")
+}
+
+model PromotionProduct {
+  id          String    @id @default(uuid())
+  promotionId String
+  productId   String
+  promotion   Promotion @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+  product     Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([promotionId, productId])
+  @@map("promotion_product")
+}
+
+model PromotionCategory {
+  id          String    @id @default(uuid())
+  promotionId String
+  categoryId  String
+  promotion   Promotion @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+  category    Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([promotionId, categoryId])
+  @@map("promotion_category")
+}
