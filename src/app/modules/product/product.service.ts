@@ -12,8 +12,32 @@ import {
   variantSearchableFields,
 } from './product.constants';
 
+// New function to check if SKU exists
+const checkSkuExists = async (sku: string): Promise<boolean> => {
+  const existingVariant = await prisma.productVariant.findUnique({
+    where: { sku },
+  });
+
+  return !!existingVariant;
+};
+
 const insertIntoDB = async (data: any): Promise<Product> => {
   const { variants, ...productData } = data;
+
+  // Ensure images is an array
+  if (!productData.images) {
+    productData.images = [];
+  } else if (!Array.isArray(productData.images)) {
+    // Convert single image to array if string is provided
+    productData.images = [productData.images];
+  }
+
+  // Handle legacy image field if present
+  if (productData.image) {
+    if (!productData.images) productData.images = [];
+    productData.images.push(productData.image);
+    delete productData.image; // Remove the old single image field
+  }
 
   // Create product with Prisma transaction if there are variants
   if (variants && variants.length > 0) {
@@ -26,9 +50,18 @@ const insertIntoDB = async (data: any): Promise<Product> => {
         },
       });
 
-      // Create each variant with proper structure according to schema
+      // Check for duplicate SKUs before creating variants
       for (const variant of variants) {
         const { attributes, images, ...variantData } = variant;
+
+        // Check if SKU already exists
+        const existingVariant = await tx.productVariant.findUnique({
+          where: { sku: variantData.sku },
+        });
+
+        if (existingVariant) {
+          throw new Error(`Variant with SKU ${variantData.sku} already exists`);
+        }
 
         // Create the variant with attributes as Json and images as string array
         await tx.productVariant.create({
@@ -262,6 +295,14 @@ const updateIntoDB = async (
   id: string,
   payload: Partial<Product>,
 ): Promise<Product> => {
+  // Handle legacy image field if present
+  if (payload.hasOwnProperty('image')) {
+    const image = (payload as any).image;
+    if (!payload.images) payload.images = [];
+    if (image) (payload.images as string[]).push(image);
+    delete (payload as any).image; // Remove the old field
+  }
+
   const result = await prisma.product.update({
     where: {
       id,
@@ -304,6 +345,12 @@ const addProductVariant = async (
 ): Promise<ProductVariant> => {
   const { attributes, images, ...variantData } = data;
 
+  // Check if SKU already exists
+  const skuExists = await checkSkuExists(variantData.sku);
+  if (skuExists) {
+    throw new Error(`Variant with SKU ${variantData.sku} already exists`);
+  }
+
   const newVariant = await prisma.productVariant.create({
     data: {
       ...variantData,
@@ -345,6 +392,7 @@ export const productService = {
   deleteFromDB,
   getAllProducts,
   getProductsbyCategoryService,
+  checkSkuExists,
 
   // Variant APIs
   addProductVariant,

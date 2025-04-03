@@ -31,7 +31,10 @@ const createProduct = z.object({
       required_error: 'Name is required',
     }),
     description: z.string().optional(),
-    image: z.string().optional(),
+    // Replace image field with images array
+    images: z.array(z.string()).optional().default([]),
+    // Keep image field for backwards compatibility
+    image: z.string().nullable().optional(),
     price: z
       .number({
         required_error: 'Price is required',
@@ -72,7 +75,10 @@ const updateProduct = z.object({
   body: z.object({
     name: z.string().optional(),
     description: z.string().optional(),
-    image: z.string().optional(),
+    // Replace image field with images array
+    images: z.array(z.string()).optional(),
+    // Keep image field for backwards compatibility
+    image: z.string().nullable().optional(),
     price: z.number().nonnegative('Price must be non-negative').optional(),
     comparePrice: z
       .number()

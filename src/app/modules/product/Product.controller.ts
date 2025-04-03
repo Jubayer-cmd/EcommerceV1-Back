@@ -68,13 +68,24 @@ const insertIntoDB = catchAsync(async (req: Request, res: Response) => {
     }));
   }
 
-  const result = await productService.insertIntoDB(req.body);
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: 'product created successfully',
-    data: result,
-  });
+  try {
+    const result = await productService.insertIntoDB(req.body);
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: 'product created successfully',
+      data: result,
+    });
+  } catch (error: any) {
+    if (error.message && error.message.includes('already exists')) {
+      return sendResponse(res, {
+        statusCode: httpStatus.CONFLICT,
+        success: false,
+        message: error.message,
+      });
+    }
+    throw error;
+  }
 });
 
 const getproducts: RequestHandler = catchAsync(
@@ -190,13 +201,24 @@ const addProductVariant = catchAsync(async (req: Request, res: Response) => {
     ? [req.body.images]
     : [];
 
-  const result = await productService.addProductVariant(productId, req.body);
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: 'product variant added successfully',
-    data: result,
-  });
+  try {
+    const result = await productService.addProductVariant(productId, req.body);
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: 'product variant added successfully',
+      data: result,
+    });
+  } catch (error: any) {
+    if (error.message && error.message.includes('already exists')) {
+      return sendResponse(res, {
+        statusCode: httpStatus.CONFLICT,
+        success: false,
+        message: error.message,
+      });
+    }
+    throw error;
+  }
 });
 
 const updateProductVariant = catchAsync(async (req: Request, res: Response) => {
