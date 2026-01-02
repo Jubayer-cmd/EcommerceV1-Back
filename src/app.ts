@@ -3,9 +3,6 @@ import cors from 'cors';
 import { rateLimit } from 'express-rate-limit';
 import express, { Application, NextFunction, Request, Response } from 'express';
 import httpStatus from 'http-status';
-import swaggerJSDoc from 'swagger-jsdoc';
-import swaggerUI from 'swagger-ui-express';
-import { swaggerOptions } from './config/swagger.config';
 import globalErrorHandler from './app/middleware/globalErrorHandler';
 import router from './app/routes/router';
 import morgan from 'morgan';
@@ -51,12 +48,6 @@ app.use(
   }),
 );
 
-// Disable CORS for Swagger docs
-app.use('/api-docs', (req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  next();
-});
-
 app.use(cookieParser());
 
 //parser
@@ -72,24 +63,6 @@ app.use(
   fileUpload({
     limits: { fileSize: 50 * 1024 * 1024 },
   }),
-);
-
-// Swagger Setup
-const swaggerSpec = swaggerJSDoc(swaggerOptions);
-app.use(
-  '/api-docs',
-  swaggerUI.serve,
-  swaggerUI.setup(swaggerSpec, {
-    explorer: true,
-    customSiteTitle: 'E-commerce API Documentation',
-    customCss: '.swagger-ui .topbar { display: none }',
-    customfavIcon: '',
-  }),
-);
-
-// Add console log for swagger URL
-console.log(
-  `📝 Swagger Documentation is available at http://localhost:9000/api-docs`,
 );
 
 //routes
