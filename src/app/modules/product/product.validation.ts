@@ -126,9 +126,122 @@ const updateProductVariant = z.object({
   }),
 });
 
+// =================================
+// NEW: SHOPIFY-STYLE VARIANT VALIDATION
+// =================================
+
+// New product variant schema for Shopify-style variants
+const shopifyProductVariantSchema = z.object({
+  option1Value: z.string().optional(),
+  option2Value: z.string().optional(),
+  option3Value: z.string().optional(),
+  sku: z.string({
+    required_error: 'SKU is required',
+  }),
+  price: z.number({
+    required_error: 'Price is required',
+  }).min(0, 'Price must be non-negative'),
+  comparePrice: z.number().min(0).optional(),
+  stockQuantity: z.number().int().min(0).optional().default(0),
+  isDefault: z.boolean().optional().default(false),
+  images: z.array(z.string()).optional().default([]),
+});
+
+// New schema for creating product with Shopify-style variants
+const createProductWithVariants = z.object({
+  body: z.object({
+    name: z.string({
+      required_error: 'Product name is required',
+    }),
+    description: z.string().optional(),
+    images: z.array(z.string()).optional().default([]),
+    price: z.number().min(0).optional().default(0),
+    comparePrice: z.number().min(0).optional(),
+    stockQuantity: z.number().int().min(0).optional().default(0),
+    sku: z.string().optional(),
+
+    // Variant options (Shopify-style)
+    option1Name: z.string().optional(),
+    option2Name: z.string().optional(),
+    option3Name: z.string().optional(),
+
+    // Variants array
+    variants: z.array(shopifyProductVariantSchema).optional().default([]),
+
+    // Relations
+    categoryId: z.string().optional(),
+    subCategoryId: z.string().optional(),
+    brandId: z.string().optional(),
+    unitId: z.string().optional(),
+  }),
+});
+
+// Schema for bulk creating variants
+const bulkCreateVariants = z.object({
+  body: z.object({
+    variants: z.array(shopifyProductVariantSchema).min(1, 'At least one variant is required'),
+  }),
+});
+
+// Schema for generating variant combinations
+const generateVariantCombinations = z.object({
+  body: z.object({
+    option1Values: z.array(z.string()).optional().default([]),
+    option2Values: z.array(z.string()).optional().default([]),
+    option3Values: z.array(z.string()).optional().default([]),
+  }),
+});
+
+// Schema for filtering products by variant options
+const getProductsByVariantOptions = z.object({
+  query: z.object({
+    option1Value: z.string().optional(),
+    option2Value: z.string().optional(),
+    option3Value: z.string().optional(),
+    minPrice: z.number().min(0).optional(),
+    maxPrice: z.number().min(0).optional(),
+    categoryId: z.string().optional(),
+    brandId: z.string().optional(),
+    subCategoryId: z.string().optional(),
+    searchTerm: z.string().optional(),
+  }),
+});
+
+// Updated variant schema for backward compatibility
+const updatedProductVariantSchema = z.object({
+  sku: z.string({
+    required_error: 'SKU is required',
+  }),
+  price: z.number({
+    required_error: 'Variant price is required',
+  }).min(0, 'Price must be non-negative'),
+  comparePrice: z.number().min(0).optional(),
+  stockQuantity: z.number({
+    required_error: 'Stock quantity is required',
+  }).int().min(0),
+  isDefault: z.boolean().optional().default(false),
+  images: z.array(z.string()).optional().default([]),
+
+  // Support both old and new variant formats
+  option1Value: z.string().optional(),
+  option2Value: z.string().optional(),
+  option3Value: z.string().optional(),
+  attributes: z.record(z.string(), z.any()).optional(), // Keep for backward compatibility
+});
+
 export const ProductValidation = {
   createProduct,
   updateProduct,
   addProductVariant,
   updateProductVariant,
+
+  // NEW: Shopify-style validation
+  createProductWithVariants,
+  bulkCreateVariants,
+  generateVariantCombinations,
+  getProductsByVariantOptions,
+
+  // Updated schemas
+  shopifyProductVariantSchema,
+  updatedProductVariantSchema,
 };

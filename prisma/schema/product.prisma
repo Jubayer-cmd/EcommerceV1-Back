@@ -1,56 +1,201 @@
 model Product {
   id            String            @id @default(uuid())
-  name          String
-  description   String?
-  images        String[]          // Multiple product images
-  price         Float             @default(0) 
-  comparePrice  Float?            // Original price for showing discounts
+  
+  // Basic Information
+  name          String            @db.VarChar(255)
+  description   String?           @db.Text
+  shortDescription String?        @db.VarChar(500)
+  
+  // SEO Fields
+  metaTitle     String?           @db.VarChar(60)
+  metaDescription String?         @db.VarChar(160)
+  slug          String?           @unique @db.VarChar(255)
+  
+  // Product Status
+  status        ProductStatus     @default(DRAFT)
   isActive      Boolean           @default(true)
-  brand         Brand?            @relation(fields: [brandId], references: [id])
-  brandId       String?
-  subCategory   SubCategory?      @relation(fields: [subCategoryId], references: [id])
-  subCategoryId String?
+  isFeatured    Boolean           @default(false)
+  
+  // Media
+  images        String[]          // Product images URLs
+  thumbnailUrl  String?           // Primary thumbnail
+  videoUrl      String?           // Product video
+  
+  // Shopify-style variant options (max 3)
+  option1Name   String?           @db.VarChar(50)  // e.g., "Color"
+  option2Name   String?           @db.VarChar(50)  // e.g., "Size"
+  option3Name   String?           @db.VarChar(50)  // e.g., "Material"
+  
+  // Pricing (for simple products)
+  price         Float             @default(0) @db.DoublePrecision
+  comparePrice  Float?            @db.DoublePrecision // Original price for discounts
+  costPrice     Float?            @db.DoublePrecision // Cost for profit calculation
+  
+  // Inventory (for simple products)
   stockQuantity Int               @default(0)
-  sku           String?           // Stock Keeping Unit
-  unit          Unit?             @relation(fields: [unitId], references: [id])
-  unitId        String?
+  sku           String?           @unique @db.VarChar(100)
+  barcode       String?           @unique @db.VarChar(100)
+  trackQuantity Boolean           @default(true)
+  
+  // Physical Properties
+  weight        Float?            @db.DoublePrecision // in grams
+  length        Float?            @db.DoublePrecision // in cm
+  width         Float?            @db.DoublePrecision // in cm
+  height        Float?            @db.DoublePrecision // in cm
+  
+  // Shipping
+  requiresShipping Boolean         @default(true)
+  shippingClass String?           @db.VarChar(50)
+  
+  // Variants
   hasVariants   Boolean           @default(false)
   variants      ProductVariant[]
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
-  OrderProduct  OrderProduct[]
+  
+  // Tags and Categories
+  tags          String[]          // Product tags for search
+  
+  // Relations
+  brand         Brand?            @relation(fields: [brandId], references: [id])
+  brandId       String?
   Category      Category?         @relation(fields: [categoryId], references: [id])
   categoryId    String?
+  subCategory   SubCategory?      @relation(fields: [subCategoryId], references: [id])
+  subCategoryId String?
+  unit          Unit?             @relation(fields: [unitId], references: [id])
+  unitId        String?
+  
+  // Collections - Many to Many
+  collections   ProductOnCollection[]
+  
+  // Related Data
   cartItems     CartItem[]
   wishlists     Wishlist[]
   reviews       ProductReview[]
   questions     ProductQuestion[]
+  OrderProduct  OrderProduct[]
   Notification  Notification[]
   promotions    PromotionProduct[]
+  
+  // Timestamps
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  publishedAt   DateTime?         // When product was published
 
   @@map("product")
+  
+  // Enhanced indexes for performance
+  @@index([status, isActive])
+  @@index([categoryId, isActive])
+  @@index([brandId, isActive])
+  @@index([slug])
+  @@index([createdAt])
+  @@index([isFeatured, isActive])
+  @@index([option1Name, option2Name, option3Name])
+  @@index([name])
+  @@index([tags])
 }
 
 model ProductVariant {
   id            String    @id @default(uuid())
-  sku           String    @unique  // Stock Keeping Unit
-  product       Product   @relation(fields: [productId], references: [id])
+  
+  // Product Relation
+  product       Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
   productId     String
-  name          String?   // Variant name (e.g., "Red XL") - made optional
-  price         Float     // Variant-specific price
-  comparePrice  Float?    // Original price for sale/discount display
+  
+  // Variant Options (Shopify-style)
+  option1Value  String?   @db.VarChar(100)  // e.g., "Red"
+  option2Value  String?   @db.VarChar(100)  // e.g., "Large"
+  option3Value  String?   @db.VarChar(100)  // e.g., "Cotton"
+  
+  // Inventory & Identification
+  sku           String    @unique @db.VarChar(100)
+  barcode       String?   @unique @db.VarChar(100)
+  
+  // Pricing
+  price         Float     @db.DoublePrecision
+  comparePrice  Float?    @db.DoublePrecision
+  costPrice     Float?    @db.DoublePrecision
+  
+  // Inventory Management
   stockQuantity Int       @default(0)
+  reservedQuantity Int    @default(0) // Reserved for pending orders
+  trackQuantity Boolean   @default(true)
+  lowStockThreshold Int?  // Alert when stock is low
+  
+  // Physical Properties
+  weight        Float?    @db.DoublePrecision
+  length        Float?    @db.DoublePrecision
+  width         Float?    @db.DoublePrecision
+  height        Float?    @db.DoublePrecision
+  
+  // Status
   isDefault     Boolean   @default(false)
   isActive      Boolean   @default(true)
-  // Store attributes as JSON instead of separate tables
-  attributes    Json?     // e.g., { "color": "Red", "size": "XL" } - made optional
-  images        String[]  // Array of image URLs
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  
+  // Media
+  images        String[]  // Variant-specific images
+  position      Int       @default(0) // Display order
+  
+  // Relations
   cartItems     CartItem[]
   orderItems    OrderProduct[]
   
+  // Timestamps
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
   @@map("product_variant")
+  
+  // Enhanced indexes
+  @@index([productId])
+  @@index([productId, option1Value, option2Value, option3Value])
+  @@index([sku])
+  @@index([isActive])
+  @@index([stockQuantity])
+}
+
+// Product Status Enum
+enum ProductStatus {
+  DRAFT       // Not visible to customers
+  ACTIVE      // Live and available
+  ARCHIVED    // Hidden but not deleted
+  OUT_OF_STOCK // Temporarily unavailable
+  
+  @@map("product_status")
+}
+
+// Product Collections (for grouping products)
+model ProductCollection {
+  id          String    @id @default(uuid())
+  name        String    @db.VarChar(255)
+  description String?   @db.Text
+  slug        String    @unique @db.VarChar(255)
+  image       String?   // Collection image
+  isActive    Boolean   @default(true)
+  sortOrder   Int       @default(0)
+  
+  // Many-to-many with products
+  products    ProductOnCollection[]
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  @@map("product_collection")
+  @@index([isActive])
+  @@index([slug])
+}
+
+// Junction table for Product-Collection many-to-many
+model ProductOnCollection {
+  product       Product           @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId     String
+  collection    ProductCollection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  collectionId  String
+  position      Int               @default(0) // Position in collection
+  createdAt     DateTime          @default(now())
+  
+  @@id([productId, collectionId])
+  @@map("product_on_collection")
 }
 
 model Unit {

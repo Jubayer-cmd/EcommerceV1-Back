@@ -255,6 +255,120 @@ const deleteProductVariant = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// =================================
+// NEW: SHOPIFY-STYLE VARIANT CONTROLLERS
+// =================================
+
+const createProductWithVariants = catchAsync(async (req: Request, res: Response) => {
+  // Parse numeric values if they're strings (from form data)
+  if (req.body.price && typeof req.body.price === 'string') {
+    req.body.price = parseFloat(req.body.price);
+  }
+  if (req.body.comparePrice && typeof req.body.comparePrice === 'string') {
+    req.body.comparePrice = parseFloat(req.body.comparePrice);
+  }
+  if (req.body.stockQuantity && typeof req.body.stockQuantity === 'string') {
+    req.body.stockQuantity = parseInt(req.body.stockQuantity, 10);
+  }
+
+  // Parse variants data
+  if (req.body.variants && Array.isArray(req.body.variants)) {
+    req.body.variants = req.body.variants.map((variant: any) => ({
+      ...variant,
+      price: typeof variant.price === 'string' ? parseFloat(variant.price) : variant.price,
+      comparePrice: variant.comparePrice ? (typeof variant.comparePrice === 'string' ? parseFloat(variant.comparePrice) : variant.comparePrice) : undefined,
+      stockQuantity: typeof variant.stockQuantity === 'string' ? parseInt(variant.stockQuantity, 10) : variant.stockQuantity,
+      isDefault: variant.isDefault === 'true' || variant.isDefault === true,
+    }));
+  }
+
+  const result = await productService.createProductWithVariants(req.body);
+  sendResponse(res, {
+    statusCode: httpStatus.CREATED,
+    success: true,
+    message: 'Product with variants created successfully',
+    data: result,
+  });
+});
+
+const getProductWithVariants = catchAsync(async (req: Request, res: Response) => {
+  const { productId } = req.params;
+  const result = await productService.getProductWithVariants(productId);
+
+  if (!result) {
+    return sendResponse(res, {
+      statusCode: httpStatus.NOT_FOUND,
+      success: false,
+      message: 'Product not found',
+    });
+  }
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Product with variants fetched successfully',
+    data: result,
+  });
+});
+
+const bulkCreateVariants = catchAsync(async (req: Request, res: Response) => {
+  const { productId } = req.params;
+
+  // Parse variants data
+  if (req.body.variants && Array.isArray(req.body.variants)) {
+    req.body.variants = req.body.variants.map((variant: any) => ({
+      ...variant,
+      price: typeof variant.price === 'string' ? parseFloat(variant.price) : variant.price,
+      comparePrice: variant.comparePrice ? (typeof variant.comparePrice === 'string' ? parseFloat(variant.comparePrice) : variant.comparePrice) : undefined,
+      stockQuantity: typeof variant.stockQuantity === 'string' ? parseInt(variant.stockQuantity, 10) : variant.stockQuantity,
+      isDefault: variant.isDefault === 'true' || variant.isDefault === true,
+    }));
+  }
+
+  const result = await productService.createVariantsForProduct(productId, req.body.variants);
+  sendResponse(res, {
+    statusCode: httpStatus.CREATED,
+    success: true,
+    message: 'Variants created successfully',
+    data: result,
+  });
+});
+
+const generateVariantCombinations = catchAsync(async (req: Request, res: Response) => {
+  const combinations = productService.generateVariantCombinations(req.body);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Variant combinations generated successfully',
+    data: combinations,
+  });
+});
+
+const getProductsWithVariantFilters = catchAsync(async (req: Request, res: Response) => {
+  const options = pick(req.query, ['limit', 'page', 'sortBy', 'sortOrder']);
+  const filters = pick(req.query, [
+    'searchTerm',
+    'categoryId',
+    'brandId',
+    'subCategoryId',
+    'minPrice',
+    'maxPrice',
+    'option1Value',
+    'option2Value',
+    'option3Value',
+  ]);
+
+  const result = await productService.getProductsByVariantOptions(filters, options);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Products with variant filters fetched successfully',
+    meta: result.meta,
+    data: result.data,
+  });
+});
+
 export const productController = {
   insertIntoDB,
   getProductById,
@@ -267,4 +381,11 @@ export const productController = {
   addProductVariant,
   updateProductVariant,
   deleteProductVariant,
+
+  // NEW: Shopify-style variant controllers
+  createProductWithVariants,
+  getProductWithVariants,
+  bulkCreateVariants,
+  generateVariantCombinations,
+  getProductsWithVariantFilters,
 };

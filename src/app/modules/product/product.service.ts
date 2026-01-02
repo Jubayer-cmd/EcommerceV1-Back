@@ -119,15 +119,27 @@ const getAllProducts = async (
               id: (filterData as any)[key],
             },
           };
-        } else if (key === 'attributeValue') {
-          // Filter by attribute value using Json field
+        } else if (key === 'option1Value') {
           return {
             variants: {
               some: {
-                attributes: {
-                  path: ['$[*]'],
-                  string_contains: (filterData as any)[key],
-                },
+                option1Value: (filterData as any)[key],
+              },
+            },
+          };
+        } else if (key === 'option2Value') {
+          return {
+            variants: {
+              some: {
+                option2Value: (filterData as any)[key],
+              },
+            },
+          };
+        } else if (key === 'option3Value') {
+          return {
+            variants: {
+              some: {
+                option3Value: (filterData as any)[key],
               },
             },
           };
@@ -226,18 +238,6 @@ const getProductsbyCategoryService = async (
         where: {
           isActive: true,
         },
-        include: {
-          attributes: {
-            include: {
-              attributeValue: {
-                include: {
-                  attribute: true,
-                },
-              },
-            },
-          },
-          images: true,
-        },
       },
     },
     skip,
@@ -273,18 +273,11 @@ const getProductById = async (id: string): Promise<Product | null> => {
       reviews: true,
       questions: true,
       variants: {
-        include: {
-          attributes: {
-            include: {
-              attributeValue: {
-                include: {
-                  attribute: true,
-                },
-              },
-            },
-          },
-          images: true,
-        },
+        where: { isActive: true },
+        orderBy: [
+          { isDefault: 'desc' },
+          { createdAt: 'asc' }
+        ]
       },
     },
   });
@@ -312,14 +305,11 @@ const updateIntoDB = async (
       Category: true,
       unit: true,
       variants: {
-        include: {
-          attributes: {
-            include: {
-              attributeValue: true,
-            },
-          },
-          images: true,
-        },
+        where: { isActive: true },
+        orderBy: [
+          { isDefault: 'desc' },
+          { createdAt: 'asc' }
+        ]
       },
     },
   });
@@ -385,6 +375,322 @@ const deleteProductVariant = async (id: string): Promise<ProductVariant> => {
   return result;
 };
 
+// =================================
+// NEW: SHOPIFY-STYLE VARIANT METHODS
+// =================================
+
+// 1. Create product with variants (Shopify style)
+const createProductWithVariants = async (data: {
+  // Basic product info
+  name: string;
+  description?: string;
+  images: string[];
+  price?: number;
+  comparePrice?: number;
+  stockQuantity?: number;
+  sku?: string;
+
+  // Variant options
+  option1Name?: string; // "Color"
+  option2Name?: string; // "Size"
+  option3Name?: string; // "Material"
+
+  // Variants array
+  variants?: {
+    option1Value?: string; // "Red"
+    option2Value?: string; // "Large"
+    option3Value?: string; // "Cotton"
+    sku: string;
+    price: number;
+    comparePrice?: number;
+    stockQuantity: number;
+    images?: string[];
+    isDefault?: boolean;
+  }[];
+}): Promise<Product> => {
+  return await prisma.$transaction(async (tx) => {
+    // Create base product
+    const product = await tx.product.create({
+      data: {
+        name: data.name,
+        description: data.description,
+        images: data.images || [],
+        price: data.price || 0,
+        comparePrice: data.comparePrice,
+        stockQuantity: data.stockQuantity || 0,
+        sku: data.sku,
+        option1Name: data.option1Name,
+        option2Name: data.option2Name,
+        option3Name: data.option3Name,
+        hasVariants: (data.variants?.length || 0) > 0,
+      }
+    });
+
+    // Create variants if provided
+    if (data.variants && data.variants.length > 0) {
+      // Validate SKU uniqueness
+      const skus = data.variants.map(v => v.sku);
+      const existingVariants = await tx.productVariant.findMany({
+        where: { sku: { in: skus } }
+      });
+
+      if (existingVariants.length > 0) {
+        throw new Error(`SKUs already exist: ${existingVariants.map(v => v.sku).join(', ')}`);
+      }
+
+      // Create variants
+      await tx.productVariant.createMany({
+        data: data.variants.map((variant, index) => ({
+          ...variant,
+          productId: product.id,
+          isDefault: variant.isDefault || index === 0,
+          images: variant.images || [],
+        }))
+      });
+    }
+
+    // Return product with variants
+    return await tx.product.findUnique({
+      where: { id: product.id },
+      include: {
+        variants: {
+          where: { isActive: true },
+          orderBy: [
+            { isDefault: 'desc' },
+            { createdAt: 'asc' }
+          ]
+        }
+      }
+    }) as Product;
+  });
+};
+
+// 2. Get product with variants
+const getProductWithVariants = async (id: string): Promise<Product | null> => {
+  const result = await prisma.product.findUnique({
+    where: { id },
+    include: {
+      variants: {
+        where: { isActive: true },
+        orderBy: [
+          { isDefault: 'desc' },
+          { createdAt: 'asc' }
+        ]
+      },
+      Category: true,
+      subCategory: true,
+      brand: true,
+      unit: true,
+    }
+  });
+  return result;
+};
+
+// 3. Bulk create variants for existing product
+const createVariantsForProduct = async (productId: string, variants: {
+  option1Value?: string;
+  option2Value?: string;
+  option3Value?: string;
+  sku: string;
+  price: number;
+  comparePrice?: number;
+  stockQuantity: number;
+  images?: string[];
+  isDefault?: boolean;
+}[]): Promise<ProductVariant[]> => {
+  return await prisma.$transaction(async (tx) => {
+    // Validate product exists
+    const product = await tx.product.findUnique({
+      where: { id: productId }
+    });
+
+    if (!product) {
+      throw new Error('Product not found');
+    }
+
+    // Validate SKU uniqueness
+    const skus = variants.map(v => v.sku);
+    const existingVariants = await tx.productVariant.findMany({
+      where: { sku: { in: skus } }
+    });
+
+    if (existingVariants.length > 0) {
+      throw new Error(`SKUs already exist: ${existingVariants.map(v => v.sku).join(', ')}`);
+    }
+
+    // Create variants
+    await tx.productVariant.createMany({
+      data: variants.map((variant, index) => ({
+        ...variant,
+        productId,
+        isDefault: variant.isDefault || false,
+        images: variant.images || [],
+      }))
+    });
+
+    // Update product to mark as having variants
+    await tx.product.update({
+      where: { id: productId },
+      data: { hasVariants: true }
+    });
+
+    // Fetch and return the created variants
+    const createdVariants = await tx.productVariant.findMany({
+      where: {
+        productId,
+        sku: { in: variants.map(v => v.sku) }
+      },
+      orderBy: [
+        { isDefault: 'desc' },
+        { createdAt: 'asc' }
+      ]
+    });
+
+    return createdVariants;
+  });
+};
+
+// 4. Filter products by variant options
+const getProductsByVariantOptions = async (
+  filters: {
+    option1Value?: string;
+    option2Value?: string;
+    option3Value?: string;
+    minPrice?: number;
+    maxPrice?: number;
+  } & IProductFilterRequest,
+  options: IPaginationOptions
+): Promise<IGenericResponse<Product[]>> => {
+  const { limit, page, skip } = paginationHelpers.calculatePagination(options);
+  const { option1Value, option2Value, option3Value, minPrice, maxPrice, ...otherFilters } = filters;
+
+  const whereConditions: any = {
+    isActive: true,
+  };
+
+  // Variant-based filtering
+  if (option1Value || option2Value || option3Value || minPrice || maxPrice) {
+    whereConditions.variants = {
+      some: {
+        isActive: true,
+        ...(option1Value && { option1Value }),
+        ...(option2Value && { option2Value }),
+        ...(option3Value && { option3Value }),
+        ...(minPrice && { price: { gte: minPrice } }),
+        ...(maxPrice && { price: { lte: maxPrice } }),
+      }
+    };
+  }
+
+  // Add other filters...
+  if (otherFilters.categoryId) {
+    whereConditions.categoryId = otherFilters.categoryId;
+  }
+
+  const result = await prisma.product.findMany({
+    where: whereConditions,
+    include: {
+      variants: {
+        where: { isActive: true },
+        orderBy: [
+          { isDefault: 'desc' },
+          { price: 'asc' }
+        ]
+      },
+      Category: true,
+      brand: true,
+    },
+    skip,
+    take: limit,
+    orderBy: { createdAt: 'desc' }
+  });
+
+  const total = await prisma.product.count({ where: whereConditions });
+
+  return {
+    meta: { total, page, limit },
+    data: result,
+  };
+};
+
+// 5. Auto-generate variant combinations
+const generateVariantCombinations = (options: {
+  option1Values?: string[];
+  option2Values?: string[];
+  option3Values?: string[];
+}): {
+  option1Value?: string;
+  option2Value?: string;
+  option3Value?: string;
+}[] => {
+  const { option1Values = [], option2Values = [], option3Values = [] } = options;
+
+  if (option1Values.length === 0) return [];
+
+  const combinations = [];
+
+  for (const opt1 of option1Values) {
+    if (option2Values.length === 0) {
+      combinations.push({ option1Value: opt1 });
+    } else {
+      for (const opt2 of option2Values) {
+        if (option3Values.length === 0) {
+          combinations.push({ option1Value: opt1, option2Value: opt2 });
+        } else {
+          for (const opt3 of option3Values) {
+            combinations.push({
+              option1Value: opt1,
+              option2Value: opt2,
+              option3Value: opt3
+            });
+          }
+        }
+      }
+    }
+  }
+
+  return combinations;
+};
+
+// 6. Update existing insertIntoDB to support Shopify-style variants
+const insertIntoDBShopify = async (data: any): Promise<Product> => {
+  const {
+    variants,
+    option1Name,
+    option2Name,
+    option3Name,
+    ...productData
+  } = data;
+
+  // Ensure images is an array
+  if (!productData.images) {
+    productData.images = [];
+  } else if (!Array.isArray(productData.images)) {
+    productData.images = [productData.images];
+  }
+
+  // Handle legacy image field if present
+  if (productData.image) {
+    if (!productData.images) productData.images = [];
+    productData.images.push(productData.image);
+    delete productData.image;
+  }
+
+  // Use new Shopify-style creation if we have variant options
+  if ((option1Name || option2Name || option3Name) && variants?.length > 0) {
+    return createProductWithVariants({
+      ...productData,
+      option1Name,
+      option2Name,
+      option3Name,
+      variants
+    });
+  }
+
+  // Fallback to old method for backward compatibility
+  return insertIntoDB(data);
+};
+
 export const productService = {
   insertIntoDB,
   getProductById,
@@ -398,4 +704,12 @@ export const productService = {
   addProductVariant,
   updateProductVariant,
   deleteProductVariant,
+
+  // NEW: Shopify-style variant APIs
+  createProductWithVariants,
+  getProductWithVariants,
+  createVariantsForProduct,
+  getProductsByVariantOptions,
+  generateVariantCombinations,
+  insertIntoDBShopify,
 };
