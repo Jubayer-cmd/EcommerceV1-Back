@@ -6,13 +6,17 @@ import { cartService } from './cart.service';
 
 const insertIntoDB = catchAsync(async (req: Request, res: Response) => {
   const userId = req.params.id;
-  const productId = req.body.productId;
-  const quantity = req.body.quantity;
-  const result = await cartService.insertIntoDB(userId, productId, quantity);
+  const { productId, quantity, productVariantId } = req.body;
+  const result = await cartService.insertIntoDB(
+    userId,
+    productId,
+    quantity,
+    productVariantId,
+  );
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: 'cart created successfully',
+    message: 'Item added to cart successfully',
     data: result,
   });
 });

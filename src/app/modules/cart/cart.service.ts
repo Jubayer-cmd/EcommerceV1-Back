@@ -1,11 +1,50 @@
 import { Cart, CartItem } from '@prisma/client';
 import prisma from '../../../utils/prisma';
+import ApiError from '../../../errors/ApiError';
+import httpStatus from 'http-status';
 
 const insertIntoDB = async (
   userId: string,
   productId: string,
   quantity: number,
+  productVariantId?: string,
 ): Promise<any> => {
+  // Validate product exists
+  const product = await prisma.product.findUnique({
+    where: { id: productId },
+    select: { id: true, hasVariants: true },
+  });
+
+  if (!product) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Product not found');
+  }
+
+  // If product has variants, variant ID is required
+  if (product.hasVariants && !productVariantId) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      'Variant selection is required for this product',
+    );
+  }
+
+  // If variant ID provided, validate it belongs to the product
+  if (productVariantId) {
+    const variant = await prisma.productVariant.findFirst({
+      where: {
+        id: productVariantId,
+        productId: productId,
+        isActive: true,
+      },
+    });
+
+    if (!variant) {
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        'Invalid variant for this product',
+      );
+    }
+  }
+
   let userCart = await prisma.cart.findUnique({
     where: {
       userId,
@@ -20,34 +59,46 @@ const insertIntoDB = async (
       data: {
         userId,
         items: {
-          create: [], // Include the items property
+          create: [],
         },
       },
       include: {
-        items: true, // Fetch the items after creating the cart
+        items: true,
       },
     });
   }
 
-  // Now you can safely access userCart.id
+  // Check if same product+variant already in cart
+  const existingItem = userCart.items.find(
+    (item) =>
+      item.productId === productId &&
+      item.productVariantId === (productVariantId || null),
+  );
+
+  if (existingItem) {
+    // Update quantity instead of creating new item
+    const updatedItem = await prisma.cartItem.update({
+      where: { id: existingItem.id },
+      data: { quantity: existingItem.quantity + quantity },
+      include: {
+        product: true,
+        variant: true,
+      },
+    });
+    return updatedItem;
+  }
+
+  // Create new cart item
   const cartItem = await prisma.cartItem.create({
     data: {
       cartId: userCart.id,
-      productId, // Provided productId
-      quantity, // Provided quantity
+      productId,
+      productVariantId: productVariantId || null,
+      quantity,
     },
     include: {
-      product: true, // Optionally include the product details in the response
-    },
-  });
-
-  // Fetch updated cart with items
-  userCart = await prisma.cart.findUnique({
-    where: {
-      userId,
-    },
-    include: {
-      items: true,
+      product: true,
+      variant: true,
     },
   });
 
@@ -60,7 +111,32 @@ const getcartById = async (id: string): Promise<Cart | null> => {
       userId: id,
     },
     include: {
-      items: true,
+      items: {
+        include: {
+          product: {
+            select: {
+              id: true,
+              name: true,
+              images: true,
+              thumbnailUrl: true,
+              price: true,
+              hasVariants: true,
+            },
+          },
+          variant: {
+            select: {
+              id: true,
+              sku: true,
+              price: true,
+              stockQuantity: true,
+              option1Value: true,
+              option2Value: true,
+              option3Value: true,
+              images: true,
+            },
+          },
+        },
+      },
     },
   });
   return result;

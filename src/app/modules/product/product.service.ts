@@ -486,68 +486,88 @@ const getProductWithVariants = async (id: string): Promise<Product | null> => {
   return result;
 };
 
-// 3. Bulk create variants for existing product
-const createVariantsForProduct = async (productId: string, variants: {
-  option1Value?: string;
-  option2Value?: string;
-  option3Value?: string;
-  sku: string;
-  price: number;
-  comparePrice?: number;
-  stockQuantity: number;
-  images?: string[];
-  isDefault?: boolean;
-}[]): Promise<ProductVariant[]> => {
-  return await prisma.$transaction(async (tx) => {
-    // Validate product exists
-    const product = await tx.product.findUnique({
-      where: { id: productId }
-    });
+// 3. Bulk create variants for existing product (with partial success)
+interface BulkVariantResult {
+  created: ProductVariant[];
+  skipped: { sku: string; reason: string }[];
+  errors: { sku: string; error: string }[];
+}
 
-    if (!product) {
-      throw new Error('Product not found');
-    }
-
-    // Validate SKU uniqueness
-    const skus = variants.map(v => v.sku);
-    const existingVariants = await tx.productVariant.findMany({
-      where: { sku: { in: skus } }
-    });
-
-    if (existingVariants.length > 0) {
-      throw new Error(`SKUs already exist: ${existingVariants.map(v => v.sku).join(', ')}`);
-    }
-
-    // Create variants
-    await tx.productVariant.createMany({
-      data: variants.map((variant, index) => ({
-        ...variant,
-        productId,
-        isDefault: variant.isDefault || false,
-        images: variant.images || [],
-      }))
-    });
-
-    // Update product to mark as having variants
-    await tx.product.update({
-      where: { id: productId },
-      data: { hasVariants: true }
-    });
-
-    // Fetch and return the created variants
-    const createdVariants = await tx.productVariant.findMany({
-      where: {
-        productId,
-        sku: { in: variants.map(v => v.sku) }
-      },
-      orderBy: [
-        { isDefault: 'desc' },
-        { createdAt: 'asc' }
-      ]
-    });
-
-    return createdVariants;
+const createVariantsForProduct = async (
+  productId: string,
+  variants: {
+    option1Value?: string;
+    option2Value?: string;
+    option3Value?: string;
+    sku: string;
+    price: number;
+    comparePrice?: number;
+    stockQuantity: number;
+    images?: string[];
+    isDefault?: boolean;
+  }[],
+): Promise<BulkVariantResult> => {
+  // Validate product exists
+  const product = await prisma.product.findUnique({
+    where: { id: productId },
   });
+
+  if (!product) {
+    throw new Error('Product not found');
+  }
+
+  const result: BulkVariantResult = {
+    created: [],
+    skipped: [],
+    errors: [],
+  };
+
+  // Check which SKUs already exist
+  const skus = variants.map((v) => v.sku);
+  const existingVariants = await prisma.productVariant.findMany({
+    where: { sku: { in: skus } },
+    select: { sku: true },
+  });
+  const existingSkus = new Set(existingVariants.map((v) => v.sku));
+
+  // Process each variant
+  for (const variant of variants) {
+    // Skip if SKU already exists
+    if (existingSkus.has(variant.sku)) {
+      result.skipped.push({
+        sku: variant.sku,
+        reason: 'SKU already exists',
+      });
+      continue;
+    }
+
+    try {
+      const created = await prisma.productVariant.create({
+        data: {
+          ...variant,
+          productId,
+          isDefault: variant.isDefault || false,
+          images: variant.images || [],
+        },
+      });
+      result.created.push(created);
+    } catch (error: any) {
+      result.errors.push({
+        sku: variant.sku,
+        error: error.message || 'Unknown error',
+      });
+    }
+  }
+
+  // Update product to mark as having variants if any were created
+  if (result.created.length > 0) {
+    await prisma.product.update({
+      where: { id: productId },
+      data: { hasVariants: true },
+    });
+  }
+
+  return result;
 };
 
 // 4. Filter products by variant options

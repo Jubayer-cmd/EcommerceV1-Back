@@ -30,13 +30,39 @@ const createOrder = async (data: Order): Promise<Order | string> => {
 
   if (paymentMethod === 'COD') {
     // If payment method is cash on delivery, create order directly without creating a payment
-    const order = await prisma.$transaction(async (prisma) => {
-      const orderProductData = orderProduct.map((product: any) => ({
-        productId: product.productId,
-        quantity: product.quantity,
-      }));
+    const order = await prisma.$transaction(async (tx) => {
+      // Build order product data with variant support and price capture
+      const orderProductData = await Promise.all(
+        orderProduct.map(async (item: any) => {
+          let price = item.price;
 
-      const createdOrder = await prisma.order.create({
+          // If price not provided, fetch from product or variant
+          if (!price) {
+            if (item.productVariantId) {
+              const variant = await tx.productVariant.findUnique({
+                where: { id: item.productVariantId },
+                select: { price: true },
+              });
+              price = variant?.price || 0;
+            } else {
+              const product = await tx.product.findUnique({
+                where: { id: item.productId },
+                select: { price: true },
+              });
+              price = product?.price || 0;
+            }
+          }
+
+          return {
+            productId: item.productId,
+            productVariantId: item.productVariantId || null,
+            quantity: item.quantity,
+            price: price,
+          };
+        }),
+      );
+
+      const createdOrder = await tx.order.create({
         data: {
           userId,
           totalAmount,
@@ -51,6 +77,14 @@ const createOrder = async (data: Order): Promise<Order | string> => {
           phone,
           orderProduct: {
             create: orderProductData,
+          },
+        },
+        include: {
+          orderProduct: {
+            include: {
+              product: true,
+              variant: true,
+            },
           },
         },
       });
@@ -119,12 +153,12 @@ const getAllOrders = async (
     andConditions.length > 0 ? { AND: andConditions } : {};
 
   const result = await prisma.order.findMany({
-    // Include related models if needed
     where: whereConditions,
     include: {
       orderProduct: {
         include: {
           product: true,
+          variant: true,
         },
       },
     },
@@ -158,6 +192,7 @@ const getAllOrdersByUserId = async (userId: string): Promise<Order[]> => {
       orderProduct: {
         include: {
           product: true,
+          variant: true,
         },
       },
     },
@@ -176,7 +211,8 @@ const getOrderById = async (id: string): Promise<Order | null> => {
     include: {
       orderProduct: {
         include: {
-          product: true, // Include the product information
+          product: true,
+          variant: true,
         },
       },
     },

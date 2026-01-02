@@ -8,24 +8,9 @@ import { productFilterableFields } from './product.constants';
 import { productService } from './product.service';
 
 const insertIntoDB = catchAsync(async (req: Request, res: Response) => {
-  // Parse numeric values if they're strings (from form data)
-  if (req.body.price && typeof req.body.price === 'string') {
-    req.body.price = parseFloat(req.body.price);
-  }
-  if (req.body.comparePrice && typeof req.body.comparePrice === 'string') {
-    req.body.comparePrice = parseFloat(req.body.comparePrice);
-  }
-  if (req.body.stockQuantity && typeof req.body.stockQuantity === 'string') {
-    req.body.stockQuantity = parseInt(req.body.stockQuantity, 10);
-  }
+  // Form data parsing is now handled by parseProductFormData middleware
 
-  // Convert hasVariants to boolean if it's a string
-  if (req.body.hasVariants) {
-    req.body.hasVariants =
-      req.body.hasVariants === 'true' || req.body.hasVariants === true;
-  }
-
-  // Additional validation: if hasVariants is true, variants must be present
+  // Validation: if hasVariants is true, variants must be present
   if (
     req.body.hasVariants &&
     (!req.body.variants || !req.body.variants.length)
@@ -35,37 +20,6 @@ const insertIntoDB = catchAsync(async (req: Request, res: Response) => {
       success: false,
       message: 'Variants are required when hasVariants is true',
     });
-  }
-
-  // Parse variant data if present
-  if (req.body.variants && Array.isArray(req.body.variants)) {
-    req.body.variants = req.body.variants.map((variant: any) => ({
-      ...variant,
-      price:
-        typeof variant.price === 'string'
-          ? parseFloat(variant.price)
-          : variant.price,
-      comparePrice: variant.comparePrice
-        ? typeof variant.comparePrice === 'string'
-          ? parseFloat(variant.comparePrice)
-          : variant.comparePrice
-        : undefined,
-      stockQuantity:
-        typeof variant.stockQuantity === 'string'
-          ? parseInt(variant.stockQuantity, 10)
-          : variant.stockQuantity,
-      isDefault: variant.isDefault === 'true' || variant.isDefault === true,
-      // Make sure attributes is an object and images is an array
-      attributes:
-        typeof variant.attributes === 'string'
-          ? JSON.parse(variant.attributes)
-          : variant.attributes || {},
-      images: Array.isArray(variant.images)
-        ? variant.images
-        : variant.images
-        ? [variant.images]
-        : [],
-    }));
   }
 
   try {
@@ -144,21 +98,7 @@ const deleteFromDB = catchAsync(async (req: Request, res: Response) => {
 });
 
 const updateIntoDB = catchAsync(async (req: Request, res: Response) => {
-  // Handle numeric values
-  if (req.body.price && typeof req.body.price === 'string') {
-    req.body.price = parseFloat(req.body.price);
-  }
-  if (req.body.comparePrice && typeof req.body.comparePrice === 'string') {
-    req.body.comparePrice = parseFloat(req.body.comparePrice);
-  }
-  if (req.body.stockQuantity && typeof req.body.stockQuantity === 'string') {
-    req.body.stockQuantity = parseInt(req.body.stockQuantity, 10);
-  }
-  if (req.body.hasVariants) {
-    req.body.hasVariants =
-      req.body.hasVariants === 'true' || req.body.hasVariants === true;
-  }
-
+  // Form data parsing is now handled by parseProductFormData middleware
   const result = await productService.updateIntoDB(req.params.id, req.body);
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -170,36 +110,8 @@ const updateIntoDB = catchAsync(async (req: Request, res: Response) => {
 
 // Product variant controllers
 const addProductVariant = catchAsync(async (req: Request, res: Response) => {
+  // Form data parsing is now handled by parseProductFormData middleware
   const { productId } = req.params;
-
-  // Parse numeric values if they're strings
-  if (req.body.price && typeof req.body.price === 'string') {
-    req.body.price = parseFloat(req.body.price);
-  }
-  if (req.body.comparePrice && typeof req.body.comparePrice === 'string') {
-    req.body.comparePrice = parseFloat(req.body.comparePrice);
-  }
-  if (req.body.stockQuantity && typeof req.body.stockQuantity === 'string') {
-    req.body.stockQuantity = parseInt(req.body.stockQuantity, 10);
-  }
-
-  // Make sure attributes is an object (parse if it's a JSON string)
-  if (typeof req.body.attributes === 'string') {
-    try {
-      req.body.attributes = JSON.parse(req.body.attributes);
-    } catch (e) {
-      req.body.attributes = {};
-    }
-  } else {
-    req.body.attributes = req.body.attributes || {};
-  }
-
-  // Make sure images is an array
-  req.body.images = Array.isArray(req.body.images)
-    ? req.body.images
-    : req.body.images
-    ? [req.body.images]
-    : [];
 
   try {
     const result = await productService.addProductVariant(productId, req.body);
@@ -222,19 +134,8 @@ const addProductVariant = catchAsync(async (req: Request, res: Response) => {
 });
 
 const updateProductVariant = catchAsync(async (req: Request, res: Response) => {
+  // Form data parsing is now handled by parseProductFormData middleware
   const { variantId } = req.params;
-
-  // Parse numeric values
-  if (req.body.price) {
-    req.body.price = parseFloat(req.body.price);
-  }
-  if (req.body.comparePrice) {
-    req.body.comparePrice = parseFloat(req.body.comparePrice);
-  }
-  if (req.body.stockQuantity) {
-    req.body.stockQuantity = parseInt(req.body.stockQuantity, 10);
-  }
-
   const result = await productService.updateProductVariant(variantId, req.body);
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -260,28 +161,7 @@ const deleteProductVariant = catchAsync(async (req: Request, res: Response) => {
 // =================================
 
 const createProductWithVariants = catchAsync(async (req: Request, res: Response) => {
-  // Parse numeric values if they're strings (from form data)
-  if (req.body.price && typeof req.body.price === 'string') {
-    req.body.price = parseFloat(req.body.price);
-  }
-  if (req.body.comparePrice && typeof req.body.comparePrice === 'string') {
-    req.body.comparePrice = parseFloat(req.body.comparePrice);
-  }
-  if (req.body.stockQuantity && typeof req.body.stockQuantity === 'string') {
-    req.body.stockQuantity = parseInt(req.body.stockQuantity, 10);
-  }
-
-  // Parse variants data
-  if (req.body.variants && Array.isArray(req.body.variants)) {
-    req.body.variants = req.body.variants.map((variant: any) => ({
-      ...variant,
-      price: typeof variant.price === 'string' ? parseFloat(variant.price) : variant.price,
-      comparePrice: variant.comparePrice ? (typeof variant.comparePrice === 'string' ? parseFloat(variant.comparePrice) : variant.comparePrice) : undefined,
-      stockQuantity: typeof variant.stockQuantity === 'string' ? parseInt(variant.stockQuantity, 10) : variant.stockQuantity,
-      isDefault: variant.isDefault === 'true' || variant.isDefault === true,
-    }));
-  }
-
+  // Form data parsing is now handled by parseProductFormData middleware
   const result = await productService.createProductWithVariants(req.body);
   sendResponse(res, {
     statusCode: httpStatus.CREATED,
@@ -312,19 +192,8 @@ const getProductWithVariants = catchAsync(async (req: Request, res: Response) =>
 });
 
 const bulkCreateVariants = catchAsync(async (req: Request, res: Response) => {
+  // Form data parsing is now handled by parseProductFormData middleware
   const { productId } = req.params;
-
-  // Parse variants data
-  if (req.body.variants && Array.isArray(req.body.variants)) {
-    req.body.variants = req.body.variants.map((variant: any) => ({
-      ...variant,
-      price: typeof variant.price === 'string' ? parseFloat(variant.price) : variant.price,
-      comparePrice: variant.comparePrice ? (typeof variant.comparePrice === 'string' ? parseFloat(variant.comparePrice) : variant.comparePrice) : undefined,
-      stockQuantity: typeof variant.stockQuantity === 'string' ? parseInt(variant.stockQuantity, 10) : variant.stockQuantity,
-      isDefault: variant.isDefault === 'true' || variant.isDefault === true,
-    }));
-  }
-
   const result = await productService.createVariantsForProduct(productId, req.body.variants);
   sendResponse(res, {
     statusCode: httpStatus.CREATED,
